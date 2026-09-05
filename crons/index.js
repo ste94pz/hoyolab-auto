@@ -1,4 +1,5 @@
 const { CronJob } = require("cron");
+const { RandomizedScheduler, validate } = require("./randomized-scheduler.js");
 
 const CheckIn = require("./check-in/index.js");
 const CodeRedeem = require("./code-redeem/index.js");
@@ -44,6 +45,21 @@ const initCrons = () => {
 		throw new Error(`Cannot have both a blacklist and a whitelist for crons`);
 	}
 
+	if (config.crons.randomization !== undefined) {
+		throw new Error("Move crons.randomization entries directly to crons.<name> and remove enabled; select mode: cron to use a fixed schedule");
+	}
+	const schedules = new Map();
+	for (const definition of definitions) {
+		const name = app.Utils.convertCase(definition.name, "kebab", "camel");
+		const value = config.crons[name];
+		// Existing strings (including empty fallback values) retain their behavior.
+		const options = !value || typeof value === "string"
+			? { mode: "cron", expression: value || definition.expression }
+			: value;
+		validate(name, options, config.crons);
+		schedules.set(name, options);
+	}
+
 	const crons = [];
 	for (const definition of definitions) {
 		if (blacklist.length > 0 && blacklist.includes(definition.name)) {
@@ -52,7 +68,20 @@ const initCrons = () => {
 		else if (whitelist.length > 0 && !whitelist.includes(definition.name)) {
 			continue;
 		}
-		else if (BlacklistedCrons.includes(definition.name)) {
+		const randomizedName = app.Utils.convertCase(definition.name, "kebab", "camel");
+		if (schedules.get(randomizedName).mode !== "cron") {
+			const cron = { name: definition.name, description: definition.description, code: definition.code };
+			const job = new RandomizedScheduler({
+				name: randomizedName,
+				options: schedules.get(randomizedName),
+				code: () => cron.code(cron),
+				cache: app.Cache,
+				logger: app.Logger
+			});
+			crons.push({ ...cron, job });
+			continue;
+		}
+		if (BlacklistedCrons.includes(definition.name)) {
 			const name = app.Utils.convertCase(definition.name, "kebab", "camel");
 
 			const expression = definition.expression;
@@ -73,7 +102,7 @@ const initCrons = () => {
 
 		const name = app.Utils.convertCase(definition.name, "kebab", "camel");
 
-		const expression = config.crons[name] || definition.expression;
+		const expression = schedules.get(name).expression;
 		const job = new CronJob(expression, () => cron.code(cron));
 		job.start();
 
