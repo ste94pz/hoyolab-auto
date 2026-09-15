@@ -1,4 +1,5 @@
 const { t } = require("../../localization/index.js");
+const descriptor = require("./check-in-descriptor.js");
 
 module.exports = class CheckIn {
 	/** @type {import("../template")} */
@@ -38,7 +39,7 @@ module.exports = class CheckIn {
 				isSigned: info.data.issign
 			};
 
-			const totalSigned = data.total;
+			const totalSigned = data.isSigned ? data.total - 1 : data.total;
 			const awardObject = {
 				name: awards[totalSigned].name,
 				count: awards[totalSigned].cnt,
@@ -94,17 +95,12 @@ module.exports = class CheckIn {
 	}
 
 	async #sign (cookieData) {
-		const res = await app.Got("HoYoLab", {
+		const options = descriptor.signOptions(this.#instance.config.ACT_ID);
+		const res = await app.Got(descriptor.profile, {
+			...options,
 			url: this.#instance.config.url.sign,
-			method: "POST",
 			responseType: "json",
-			searchParams: {
-				act_id: this.#instance.config.ACT_ID
-			},
-			headers: {
-				Cookie: cookieData,
-				"x-rpc-signgame": "hkrpg"
-			}
+			headers: { ...options.headers, Cookie: cookieData }
 		});
 
 		if (res.statusCode !== 200) {
@@ -140,16 +136,12 @@ module.exports = class CheckIn {
 	}
 
 	async #getSignInfo (cookieData) {
-		const res = await app.Got("HoYoLab", {
+		const options = descriptor.readOptions(this.#instance.config.ACT_ID);
+		const res = await app.Got(descriptor.profile, {
+			...options,
 			url: this.#instance.config.url.info,
 			responseType: "json",
-			searchParams: {
-				act_id: this.#instance.config.ACT_ID
-			},
-			headers: {
-				Cookie: cookieData,
-				"x-rpc-signgame": "hkrpg"
-			}
+			headers: { ...options.headers, Cookie: cookieData }
 		});
 
 		if (res.statusCode !== 200) {
@@ -191,16 +183,12 @@ module.exports = class CheckIn {
 	}
 
 	async #getAwardsData (cookieData) {
-		const res = await app.Got("HoYoLab", {
+		const options = descriptor.readOptions(this.#instance.config.ACT_ID);
+		const res = await app.Got(descriptor.profile, {
+			...options,
 			url: this.#instance.config.url.home,
 			responseType: "json",
-			searchParams: {
-				act_id: this.#instance.config.ACT_ID
-			},
-			headers: {
-				Cookie: cookieData,
-				"x-rpc-signgame": "hkrpg"
-			}
+			headers: { ...options.headers, Cookie: cookieData }
 		});
 
 		if (res.statusCode !== 200) {
