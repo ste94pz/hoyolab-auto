@@ -105,9 +105,9 @@ for (const [folder, platform, route, signgame, actId] of games) {
 	});
 
 	for (const stage of ["info", "home", "sign"]) {
-		for (const [kind, response] of [
-			["no-character retcode", { body: { retcode: -10002, message: "Synthetic missing character", data: null } }],
-			["HTTP failure", { statusCode: 403 }]
+		for (const [kind, response, reason] of [
+			["no-character retcode", { body: { retcode: -10002, message: "Synthetic missing character", data: null } }, "Synthetic missing character"],
+			["HTTP failure", { statusCode: 403 }, "HTTP 403"]
 		]) {
 			test(`${folder}: ${stage} ${kind} produces no success`, async (t) => {
 				const { game, requests, replies, logs } = await setup(t);
@@ -121,7 +121,16 @@ for (const [folder, platform, route, signgame, actId] of games) {
 					paths.push("sign");
 				}
 				replies.push(response);
-				assert.deepEqual(await game.checkIn(), []);
+				assert.deepEqual(await game.checkIn(), [{
+					failed: true,
+					uid: "synthetic-role",
+					platform,
+					rank: 20,
+					username: "Synthetic player",
+					region: folder === "termis" ? "Global" : "EU",
+					result: reason,
+					assets: { ...game.config.assets, logo: undefined, color: undefined }
+				}]);
 				assertRequests(requests, paths);
 				assert.equal(JSON.stringify(logs).includes("Today's Reward"), false);
 			});
@@ -166,7 +175,17 @@ test("starrail: captured duplicate-sign retcode is not reported as success", asy
 	const game = new StarRail({ id: 1, data: [{ cookie, stamina: { check: false, threshold: 100, persistent: false } }]});
 	game.accounts.push({ cookie, uid: "synthetic-role", nickname: "Synthetic player", level: 20, region: "synthetic-region" });
 	harness.replies.push(info(), home(), { body: { retcode: -5003, message: "Synthetic already checked in", data: null } });
-	assert.deepEqual(await game.checkIn(), []);
+	assert.deepEqual(await game.checkIn(), [{
+		failed: true,
+		uid: "synthetic-role",
+		platform: "starrail",
+		rank: 20,
+		username: "Synthetic player",
+		region: "EU",
+		result: "Synthetic already checked in",
+		assets: { ...game.config.assets, logo: undefined, color: undefined }
+	}]);
+	assert.equal(JSON.stringify(harness.logs).includes("Today's Reward"), false);
 	assert.deepEqual(harness.requests.map(request => request.url.pathname), [
 		"/event/luna/hkrpg/os/info",
 		"/event/luna/hkrpg/os/home",

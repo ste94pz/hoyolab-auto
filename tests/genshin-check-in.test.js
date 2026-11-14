@@ -88,15 +88,25 @@ test("already signed on the final reward day skips the claim and returns today's
 	assertRequests(requests, ["info", "home"]);
 });
 
-for (const [name, response] of [
-	["claim retcode", { body: { retcode: -10002 } }],
-	["claim HTTP error", { statusCode: 403 }]
+for (const [name, response, reason] of [
+	["claim retcode", { body: { retcode: -10002 } }, "retcode -10002"],
+	["claim HTTP error", { statusCode: 403 }, "HTTP 403"]
 ]) {
 	test(`${name} does not produce success or request confirmation`, async (t) => {
-		const { game, requests, replies } = await setup(t);
+		const { game, requests, replies, logs } = await setup(t);
 		replies.push(info(), home(), response);
-		assert.deepEqual(await game.checkIn(), []);
+		assert.deepEqual(await game.checkIn(), [{
+			failed: true,
+			uid: "synthetic-role",
+			platform: "genshin",
+			rank: 20,
+			username: "Synthetic Traveler",
+			region: "EU",
+			result: reason,
+			assets: { ...game.config.assets, logo: undefined, color: undefined }
+		}]);
 		assertRequests(requests, ["info", "home", "sign"]);
+		assert.equal(JSON.stringify(logs).includes("Today's Reward"), false);
 	});
 }
 
@@ -119,10 +129,20 @@ for (const [name, response] of [
 }
 
 test("failed pre-check does not attempt the claim", async (t) => {
-	const { game, requests, replies } = await setup(t);
+	const { game, requests, replies, logs } = await setup(t);
 	replies.push({ body: { retcode: -1 } });
-	assert.deepEqual(await game.checkIn(), []);
+	assert.deepEqual(await game.checkIn(), [{
+		failed: true,
+		uid: "synthetic-role",
+		platform: "genshin",
+		rank: 20,
+		username: "Synthetic Traveler",
+		region: "EU",
+		result: "retcode -1",
+		assets: { ...game.config.assets, logo: undefined, color: undefined }
+	}]);
 	assertRequests(requests, ["info"]);
+	assert.equal(JSON.stringify(logs).includes("Today's Reward"), false);
 });
 
 test("a later invocation rechecks a claim whose confirmation failed without claiming twice", async (t) => {
