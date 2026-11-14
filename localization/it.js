@@ -394,6 +394,8 @@
 			"No ltoken_v2, ltuid_v2, or ltmid_v2 found in cookie.": "ltoken_v2, ltuid_v2 o ltmid_v2 non trovati nel cookie.",
 			"No cookie_token_v2 or account_mid_v2 found in cookie for {0}. This will disable \"redeemCode\" functionality.": "cookie_token_v2 o account_mid_v2 non trovati nel cookie per {0}. La funzione \"redeemCode\" verrà disabilitata.",
 			"Could not refresh the cookie for account {0}: {1}": "Impossibile aggiornare il cookie per l'account {0}: {1}",
+			"Cookie refreshed for HoYoLAB account {0} at {1}.": "Cookie aggiornato per l'account HoYoLAB {0} alle {1}.",
+			"Could not save the last successful cookie refresh time for HoYoLAB account {0}.": "Impossibile salvare l'ora dell'ultimo aggiornamento del cookie riuscito per l'account HoYoLAB {0}.",
 			"HoYoLAB Cookie Refresh Restored": "Aggiornamento cookie HoYoLAB ripristinato",
 			"HoYoLAB Cookie Refresh Failed": "Aggiornamento cookie HoYoLAB non riuscito",
 			"Cookie refresh is working again for HoYoLAB account {0}.": "L'aggiornamento del cookie funziona di nuovo per l'account HoYoLAB {0}.",

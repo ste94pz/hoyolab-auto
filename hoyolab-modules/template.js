@@ -35,6 +35,7 @@ module.exports = class HoyoLab {
 
 	/** @type {HoyoLab[]} */
 	static list = [];
+	static #cookieRefreshes = new Map();
 	static webAPI = REFRESH_API;
 
 	constructor (name, config, defaults = {}) {
@@ -374,60 +375,80 @@ module.exports = class HoyoLab {
 		}
 
 		const results = [];
-		const configuredAccounts = HoyoLab.list.flatMap(instance => instance.data);
 		for (const { account, platform } of accounts.values()) {
-			const notificationAccount = {
-				ltuid: account.ltuid,
-				discord: account.discord,
-				allowedPlatforms: account.allowedPlatforms
-			};
-			const notificationAccounts = configuredAccounts
-				.filter(item => item.ltuid === account.ltuid)
-				.map(item => ({ discord: item.discord, allowedPlatforms: item.allowedPlatforms }));
-			try {
-				const result = await platform.updateCookie(account);
-				if (!result.success) {
-					app.Logger.warn("HoyoAuth", t `Could not refresh the cookie for account ${account.ltuid}: ${result.reason}`);
-					results.push({
-						account: notificationAccount,
-						accounts: notificationAccounts,
-						success: false
-					});
-					continue;
-				}
-
-				for (const item of HoyoLab.list.flatMap(instance => [...instance.data, ...instance.accounts])) {
-					const cookie = parseCookie(item.cookie);
-					if (cookie.ltuid_v2 === account.ltuid) {
-						item.cookie = stringifyCookie({
-							...cookie,
-							...result.data,
-							account_id_v2: cookie.ltuid_v2,
-							account_mid_v2: cookie.ltmid_v2
-						});
-						// Restore the user's preference now that redemption credentials are available.
-						if (Object.hasOwn(item, "redeemCodeConfigured")) {
-							item.redeemCode = item.redeemCodeConfigured;
-						}
-					}
-				}
-				results.push({
-					account: notificationAccount,
-					accounts: notificationAccounts,
-					success: true
-				});
+			let refresh = HoyoLab.#cookieRefreshes.get(account.ltuid);
+			if (!refresh) {
+				// Share the whole refresh, including cookie propagation, across all callers.
+				refresh = Promise.resolve().then(() => HoyoLab.#refreshCookieAccount(account, platform))
+					.finally(() => HoyoLab.#cookieRefreshes.delete(account.ltuid));
+				HoyoLab.#cookieRefreshes.set(account.ltuid, refresh);
 			}
-			catch (e) {
-				app.Logger.error("HoyoAuth", t `Could not refresh the cookie for account ${account.ltuid}: ${e.message}`);
-				results.push({
-					account: notificationAccount,
-					accounts: notificationAccounts,
-					success: false
-				});
-			}
+			results.push(await refresh);
 		}
 
 		return results;
+	}
+
+	static async #refreshCookieAccount (account, platform) {
+		const configuredAccounts = HoyoLab.list.flatMap(instance => instance.data);
+		const notificationAccount = {
+			ltuid: account.ltuid,
+			discord: account.discord,
+			allowedPlatforms: account.allowedPlatforms
+		};
+		const notificationAccounts = configuredAccounts
+			.filter(item => item.ltuid === account.ltuid)
+			.map(item => ({ discord: item.discord, allowedPlatforms: item.allowedPlatforms }));
+		try {
+			const result = await platform.updateCookie(account);
+			if (!result.success) {
+				app.Logger.warn("HoyoAuth", t `Could not refresh the cookie for account ${account.ltuid}: ${result.reason}`);
+				return {
+					account: notificationAccount,
+					accounts: notificationAccounts,
+					success: false
+				};
+			}
+
+			for (const item of HoyoLab.list.flatMap(instance => [...instance.data, ...instance.accounts])) {
+				const cookie = parseCookie(item.cookie);
+				if (cookie.ltuid_v2 === account.ltuid) {
+					item.cookie = stringifyCookie({
+						...cookie,
+						...result.data,
+						account_id_v2: cookie.ltuid_v2,
+						account_mid_v2: cookie.ltmid_v2
+					});
+					// Restore the user's preference now that redemption credentials are available.
+					if (Object.hasOwn(item, "redeemCodeConfigured")) {
+						item.redeemCode = item.redeemCodeConfigured;
+					}
+				}
+			}
+			const refreshedAt = new Date().toISOString();
+			app.Logger.log("HoyoAuth", t `Cookie refreshed for HoYoLAB account ${account.ltuid} at ${refreshedAt}.`);
+			try {
+				await app.Cache.set({ key: `hoyolab:cookie-refresh:${account.ltuid}:last-success`, value: refreshedAt });
+			}
+			catch {
+				// Recording the timestamp must not turn a successful refresh into a failure.
+				app.Logger.warn("HoyoAuth", t `Could not save the last successful cookie refresh time for HoYoLAB account ${account.ltuid}.`);
+			}
+
+			return {
+				account: notificationAccount,
+				accounts: notificationAccounts,
+				success: true
+			};
+		}
+		catch (e) {
+			app.Logger.error("HoyoAuth", t `Could not refresh the cookie for account ${account.ltuid}: ${e.message}`);
+			return {
+				account: notificationAccount,
+				accounts: notificationAccounts,
+				success: false
+			};
+		}
 	}
 
 	static async refreshStoredCookies (cookie = null) {

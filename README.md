@@ -218,6 +218,11 @@ If your cookie also contains `stoken`, HoyoLab Auto uses it to refresh
 `ltoken_v2` and `cookie_token_v2` on startup and every two hours. Keep the
 configured cookie private; `stoken` is not sent with regular HoYoLAB requests.
 Only one game entry needs it when several games use the same HoYoLAB account.
+Concurrent refresh attempts for the same HoYoLAB account share one request within
+one process. Successful refreshes log the account ID and UTC timestamp; the latest
+success time is also saved in `data/cache.json` under
+`hoyolab:cookie-refresh:<account-id>:last-success`, without cookies or tokens.
+
 Browser sessions do not normally expose `stoken`; it must come from an app login.
 The optional [HoYoLAB cookie helper](https://github.com/Smexhy/hoyolab-cookie-helper)
 can obtain it locally on Windows, macOS, or Linux. It is a third-party helper
