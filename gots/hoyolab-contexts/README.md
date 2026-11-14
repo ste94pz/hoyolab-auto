@@ -41,8 +41,7 @@ Passport refresh uses the existing SG fallback, `stoken`/`mid` cookie and token
 lifecycle. Its dedicated signer hashes the exact serialized JSON body with an
 empty signed query. SDK/app constants and the configured language are sent;
 Android device/fingerprint, regional routing state, age and challenge metadata
-are omitted because the application has no legitimate values for them. This
-reduced headless identity has not been validated against the backend.
+are omitted because the application has no legitimate values for them.
 Passport signing is separate from desktop basic DS, which
 remains explicitly used by HSR/HI3 Game Record.
 
@@ -70,7 +69,7 @@ Offline tests exercise effective URLs, serialized bodies, headers, signing,
 locale/setup compatibility and synthetic response lifecycles without account
 credentials or network access. Official-client observations support the selected
 request contracts, including HSR point-cost exchange and downstream redemption.
-They do not establish that the bot's reduced headers/cookies work live. ZZZ Mimo
+They do not establish live acceptance of every bot operation. ZZZ Mimo
 shop/lottery success, lottery prizes containing codes, the precise ToT WebView
 claim subset, and Passport's minimum backend metadata remain unverified. Synthetic
 fixtures for these cases are regression coverage, not successful API calls.
