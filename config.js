@@ -11,7 +11,7 @@ try {
 }
 catch (e) {
 	if (file.existsSync(configPath) === false) {
-		throw new Error(t `No config file (${configPath}) was found. Please follow the setup instructions on https://github.com/torikushiii/hoyolab-auto?tab=readme-ov-file#installation \n${e}`);
+		throw new Error(t `No config file (${configPath}) was found. Please follow the setup instructions on https://github.com/ste94pz/hoyoutils#installation \n${e}`);
 	}
 
 	throw new Error(t `An error occurred when reading your configuration file (${configPath}). Please check and fix the following error:\n${e}`);

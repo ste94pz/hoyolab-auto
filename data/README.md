@@ -37,8 +37,9 @@ been run for the first time.
 
 If you encounter cache-related issues:
 
-1. Stop the application
-2. Delete the `cache.json` file
-3. Restart the application
+1. Stop the application and back up `cache.json` privately.
+2. Check logs and configuration before resetting state.
+3. Only if an intentional full reset is needed, remove `cache.json` and restart.
 
-The cache will be rebuilt automatically with fresh data from the APIs.
+The cache will be rebuilt from fresh API data, but pending codes and attempt
+protections cannot be reconstructed from those reads. Keep the backup for recovery.

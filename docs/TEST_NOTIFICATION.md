@@ -1,6 +1,6 @@
 # Test Notification Feature
 
-The HoyoLab Auto application now includes a **Test Notification** feature that
+The HoYoUtils application now includes a **Test Notification** feature that
 helps verify platform functionality when the application starts.
 
 ## Overview
@@ -97,7 +97,7 @@ $test-notification Custom message here
 4. **Gotify Issues**
    - Use an application token created in the Gotify web UI
    - Check that the server URL is reachable from the machine or container
-     running HoyoLab Auto
+     running HoYoUtils
    - Include any reverse proxy path in the URL, such as
      `https://example.com/gotify`
 
@@ -128,5 +128,5 @@ Check your logs for:
    notifications
 4. **Quick Testing**: Manual command for testing changes or troubleshooting
 
-The test notification feature ensures that your HoyoLab Auto setup is fully
+The test notification feature ensures that your HoYoUtils setup is fully
 functional and ready to keep you informed about your HoYoverse games!

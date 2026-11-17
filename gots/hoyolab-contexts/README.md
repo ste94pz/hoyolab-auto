@@ -71,8 +71,9 @@ Offline tests exercise effective URLs, serialized bodies, headers, signing,
 locale/setup compatibility and synthetic response lifecycles without account
 credentials or network access. Official-client observations support the selected
 request contracts, including HSR point-cost exchange and downstream redemption.
-They do not establish live acceptance of every bot operation. ZZZ Mimo
-shop/lottery success, lottery prizes containing codes, the precise ToT WebView
-claim subset, and Passport's minimum backend metadata remain unverified.
-Synthetic fixtures for these cases are regression coverage, not successful API
-calls.
+They do not establish live acceptance of every bot operation or account.
+Historical observations have operation-specific scope; neither tests nor one
+successful session establish universal minimum metadata, token lifetime or
+challenge behavior. ToT headless redemption and deployed Google Apps Script
+transport are not claimed live-validated here. The qiuqiu lottery exception
+remains unverified. See [HTTP limitations](../../docs/HTTP_API.md).

@@ -141,7 +141,7 @@ module.exports = {
 			if (webhook) {
 				for (const embed of embeds) {
 					await webhook.send(embed, {
-						author: "HoyoLab Auto",
+						author: "HoYoUtils",
 						icon: embed.author?.icon_url,
 						notificationType: "checkIn"
 					});

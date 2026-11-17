@@ -37,8 +37,8 @@ module.exports = class Webhook extends require("./template.js") {
 			json: {
 				content: options.content ?? "",
 				embeds: [message],
-				username: options.author ?? "HoyoLab",
-				avatar_url: options.icon ?? "https://i.ibb.co/nRqTkXv/image.png"
+				username: options.author ?? "HoYoUtils",
+				avatar_url: options.icon ?? "https://raw.githubusercontent.com/ste94pz/hoyoutils/main/assets/HoYoUtils.png"
 			}
 		});
 

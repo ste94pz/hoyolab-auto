@@ -1,5 +1,5 @@
 {
-  "name": "hoyolab-auto",
+  "name": "hoyoutils",
   "module": "index.js",
   "type": "commonjs",
   "scripts": {
@@ -43,5 +43,23 @@
     "keyv": "^4.5.4",
     "keyv-file": "^0.3.1",
     "winston": "3.13.0"
+  },
+  "description": "Unofficial automation and utility toolkit for HoYoverse games.",
+  "private": true,
+  "homepage": "https://github.com/ste94pz/hoyoutils",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ste94pz/hoyoutils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ste94pz/hoyoutils/issues"
+  },
+  "contributors": [
+    "ste94pz (HoYoUtils maintenance and fork contributions)",
+    "HoyoLab Auto contributors (see Git history)"
+  ],
+  "funding": {
+    "type": "ko-fi",
+    "url": "https://ko-fi.com/ste94pz5361"
   }
 }

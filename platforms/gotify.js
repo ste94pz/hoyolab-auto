@@ -76,7 +76,7 @@ module.exports = class Gotify extends require("./template.js") {
 	connect () {}
 
 	prepareMessage (messageData, options = {}) {
-		let title = options.title ?? "HoyoLab Auto";
+		let title = options.title ?? "HoYoUtils";
 		let message;
 
 		if (typeof messageData === "string") {

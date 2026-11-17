@@ -177,7 +177,7 @@ const checkAndRedeem = async (codes) => {
 						platform: game.platform,
 						assets: {
 							color: accountAssets.color ?? platform?.color ?? platformAssets.color ?? 0x5865F2,
-							author: accountAssets.author ?? platformAssets.author ?? "HoyoLab Auto",
+							author: accountAssets.author ?? platformAssets.author ?? "HoYoUtils",
 							logo: accountAssets.logo ?? platform?.logo ?? platformAssets.logo ?? null
 						},
 						reason: game.manualReason ?? DEFAULT_MANUAL_REASON,
@@ -386,7 +386,7 @@ const buildMessage = (status, data) => {
 		color: assets.color ?? 0x5865F2,
 		title: t `${gameName} Code Redeem`,
 		author: {
-			name: assets.author ?? "HoyoLab Auto",
+			name: assets.author ?? "HoYoUtils",
 			icon_url: assets.logo ?? null
 		},
 		description: embedDescriptionParts.join(""),

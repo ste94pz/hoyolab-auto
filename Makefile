@@ -1,48 +1,35 @@
-# Set default shell for commands to bash (important for some commands)
 SHELL := /bin/bash
 
-# Define your Docker Compose project name
-COMPOSE_PROJECT_NAME := hoyolab-auto  
+# Retained for existing installations; override deliberately when migrating.
+COMPOSE_PROJECT_NAME ?= hoyolab-auto
+COMPOSE_FILE ?= docker-compose.yml
+COMPOSE = docker compose -p $(COMPOSE_PROJECT_NAME) -f $(COMPOSE_FILE)
 
-# Define the Docker Compose file to use
-COMPOSE_FILE := docker-compose.yml
+.PHONY: build up down restart logs exec update help
 
-# Target: build (Builds your Docker image)
 build:
-	docker-compose -f $(COMPOSE_FILE) build
+	$(COMPOSE) build
 
-# Target: up (Starts your application in the background)
 up:
-	docker-compose -f $(COMPOSE_FILE) up -d
+	$(COMPOSE) up -d --build --pull never
 
-# Target: down (Stops and removes containers, networks)
 down:
-	docker-compose -f $(COMPOSE_FILE) down
+	$(COMPOSE) down
 
-# Target: restart (Restarts your application)
-restart: down up
+restart:
+	$(COMPOSE) restart instance
 
-# Target: logs (Follows application logs)
 logs:
-	docker-compose -f $(COMPOSE_FILE) logs -f instance 
+	$(COMPOSE) logs -f instance
 
-# Target: exec (Execute a command inside the running container)
 exec:
-	docker-compose -f $(COMPOSE_FILE) exec instance bash
+	$(COMPOSE) exec instance sh
 
-# Target: update (Rebuild and restart with latest changes)
-update: build restart 
+update:
+	$(COMPOSE) build --pull
+	$(COMPOSE) up -d --no-build --pull never
 
-# Target: help (Display help message)
 help:
-	@echo "Usage: make <target>"
-	@echo ""
-	@echo "Targets:"
-	@echo "  build       Build the Docker image"
-	@echo "  up          Start the application in the background"
-	@echo "  down        Stop and remove containers, networks, volumes"
-	@echo "  restart     Restart the application (down & up)"
-	@echo "  logs        View application logs"
-	@echo "  exec        Open a Bash shell inside the running container"
-	@echo "  update      Rebuild the image and restart the application"
-	@echo "  help        Show this help message"
+	@echo "HoYoUtils: make build|up|down|restart|logs|exec|update"
+	@echo "up builds locally; update refreshes the base image and rebuilds before recreating."
+	@echo "down preserves bind-mounted config, data and logs. exec opens an Alpine sh shell."

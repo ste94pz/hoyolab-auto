@@ -1,13 +1,13 @@
 # Gotify notifications
 
-[Gotify](https://gotify.net/) is a self-hosted notification server. HoyoLab Auto
+[Gotify](https://gotify.net/) is a self-hosted notification server. HoYoUtils
 can send check-in results, reminders, code redemption results, Mimo and
 Hilichurl updates, and cookie refresh alerts to it.
 
 ## Setup
 
 1. Run a Gotify server and open its web UI.
-2. Create an application, such as **HoyoLab Auto**, and copy the application
+2. Create an application, such as **HoYoUtils**, and copy the application
    token.
 3. Connect your Gotify client to that server to receive notifications on your
    phone.
@@ -29,7 +29,7 @@ platforms: [
 ```
 
 Use the server's base URL, including any reverse proxy path, such as
-`https://example.com/gotify`. HoyoLab Auto appends `/message` automatically.
+`https://example.com/gotify`. HoYoUtils appends `/message` automatically.
 Both HTTP and HTTPS are supported. The application token is sent in the
 `X-Gotify-Key` header.
 
@@ -82,6 +82,6 @@ Set `testNotification.enabled` to `true` in `config.json5`. When the application
 starts, it sends a Gotify test message with its status and local time. Delivery
 failures are reported in the application logs.
 
-The server must be reachable from the process running HoyoLab Auto. When running
-in Docker, `localhost` refers to the HoyoLab Auto container; use a reachable
+The server must be reachable from the process running HoYoUtils. When running
+in Docker, `localhost` refers to the HoYoUtils container; use a reachable
 hostname or the Gotify service name on a shared Docker network instead.

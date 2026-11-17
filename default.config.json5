@@ -27,7 +27,7 @@
             id: 2,
             active: false, // Set to true if you want to enable a Telegram bot to receive notifications and issue commands
             type: 'telegram',
-            chatId: 123, // You can follow this guide to create a bot: https://github.com/torikushiii/hoyolab-auto/blob/main/setup/TELEGRAM.md
+            chatId: 123, // You can follow this guide to create a bot: https://github.com/ste94pz/hoyoutils/blob/main/setup/TELEGRAM.md
             token: '(YOUR_TELEGRAM_BOT_TOKEN)',
             disableNotification: false, // Set to true if you want to disable notification for Telegram bot (sounds, vibration, etc.)
         },
@@ -35,7 +35,7 @@
             id: 3,
             active: false, // Set to true if you want to receive notifications from a Discord webhook
             type: 'webhook',
-            url: '(YOUR_WEBHOOK_URL)', // You can follow this guide to create a webhook: https://github.com/torikushiii/hoyolab-auto/blob/main/setup/DISCORD_WEBHOOK.md
+            url: '(YOUR_WEBHOOK_URL)', // You can follow this guide to create a webhook: https://github.com/ste94pz/hoyoutils/blob/main/setup/DISCORD_WEBHOOK.md
         },
         {
             id: 4,

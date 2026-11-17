@@ -65,7 +65,7 @@ async function sendPlatformTestNotification (platform) {
 			case "webhook": {
 				const platformLabel = platformName === "gotify" ? "Gotify" : t("Discord Webhook");
 				const testEmbed = {
-					title: t("🔥 HoyoLab Auto - Test Notification"),
+					title: t("🔥 HoYoUtils - Test Notification"),
 					description: t `This is a test notification to confirm that ${platformLabel} is working properly.`,
 					color: 3447003,
 					fields: [
@@ -86,16 +86,16 @@ async function sendPlatformTestNotification (platform) {
 						}
 					],
 					footer: {
-						text: t("HoyoLab Auto Test System"),
-						icon_url: "https://i.ibb.co/nRqTkXv/image.png"
+						text: t("HoYoUtils Test System"),
+						icon_url: "https://raw.githubusercontent.com/ste94pz/hoyoutils/main/assets/HoYoUtils.png"
 					},
 					timestamp
 				};
 
 				await platform.send(testEmbed, {
-					content: t("🚀 **HoyoLab Auto Started Successfully!**"),
-					author: "HoyoLab Auto",
-					icon: "https://i.ibb.co/nRqTkXv/image.png"
+					content: t("🚀 **HoYoUtils Started Successfully!**"),
+					author: "HoYoUtils",
+					icon: "https://raw.githubusercontent.com/ste94pz/hoyoutils/main/assets/HoYoUtils.png"
 				});
 				break;
 			}
@@ -103,12 +103,12 @@ async function sendPlatformTestNotification (platform) {
 			case "telegram": {
 				// Send a test message to Telegram
 				const escapeMarkdown = (text) => text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
-				const testMessage = t `🔥 *HoyoLab Auto \\- Test Notification*\n\n`
+				const testMessage = t `🔥 *HoYoUtils \\- Test Notification*\n\n`
 					+ t `This is a test notification to confirm that the Telegram bot is working properly\\.\n\n`
 					+ t `✅ *Status:* Connected\n`
 					+ t `🕒 *Local Time:* ${escapeMarkdown(localTime)}\n`
 					+ t `🤖 *Platform:* Telegram Bot\n\n`
-					+ t `🚀 *HoyoLab Auto Started Successfully\\!*`;
+					+ t `🚀 *HoYoUtils Started Successfully\\!*`;
 
 				await platform.send(testMessage);
 				break;
@@ -145,7 +145,7 @@ async function sendManualTestNotification (platform, options = {}) {
 			case "webhook": {
 				const platformLabel = platformName === "gotify" ? "Gotify" : t("Discord Webhook");
 				const testEmbed = {
-					title: t("🧪 HoyoLab Auto - Manual Test"),
+					title: t("🧪 HoYoUtils - Manual Test"),
 					description: customMessage,
 					color: 16776960, // Yellow color for manual tests
 					fields: [
@@ -166,16 +166,16 @@ async function sendManualTestNotification (platform, options = {}) {
 						}
 					],
 					footer: {
-						text: t("HoyoLab Auto Manual Test"),
-						icon_url: "https://i.ibb.co/nRqTkXv/image.png"
+						text: t("HoYoUtils Manual Test"),
+						icon_url: "https://raw.githubusercontent.com/ste94pz/hoyoutils/main/assets/HoYoUtils.png"
 					},
 					timestamp
 				};
 
 				await platform.send(testEmbed, {
 					content: t("🧪 **Manual Test Notification**"),
-					author: "HoyoLab Auto",
-					icon: "https://i.ibb.co/nRqTkXv/image.png"
+					author: "HoYoUtils",
+					icon: "https://raw.githubusercontent.com/ste94pz/hoyoutils/main/assets/HoYoUtils.png"
 				});
 				break;
 			}
@@ -183,7 +183,7 @@ async function sendManualTestNotification (platform, options = {}) {
 			case "telegram": {
 				const escapeMarkdown = (text) => text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
 				const testMessage = [
-					t `🧪 *HoyoLab Auto \\- Manual Test*\n\n`,
+					t `🧪 *HoYoUtils \\- Manual Test*\n\n`,
 					`${escapeMarkdown(customMessage)}\n\n`,
 					t `🔧 *Test Type:* Manual\n`,
 					t `🕒 *Triggered At:* ${escapeMarkdown(localTime)}\n`,

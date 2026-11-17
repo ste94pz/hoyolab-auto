@@ -56,7 +56,7 @@ test("language files are discovered by filename and preserve placeholders", () =
 	const files = [];
 	function collect (dir) {
 		for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-			if (["node_modules", ".git", ".codex-private", ".codex", ".agents", "tests", "localization"].includes(entry.name)) {
+			if (["node_modules", ".git", ".codex-private", ".codex", ".agents", ".kilo", "tests", "localization"].includes(entry.name)) {
 				continue;
 			}
 			const file = path.join(dir, entry.name);

@@ -1,7 +1,12 @@
 services:
   instance:
-    image: ghcr.io/torikushiii/hoyolab-auto:latest
+    image: ${HOYOUTILS_IMAGE:-ghcr.io/ste94pz/hoyoutils:local}
+    build:
+      context: .
+    # The registry may not exist yet. Build locally by default.
+    pull_policy: build
     restart: on-failure:5
+    # Retained so migration does not silently create a second account worker.
     container_name: hoyolab-auto
     network_mode: bridge
     volumes:
@@ -9,4 +14,4 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      TZ: Asia/Shanghai
+      TZ: ${TZ:-Asia/Shanghai}

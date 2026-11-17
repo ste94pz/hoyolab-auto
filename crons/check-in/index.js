@@ -82,7 +82,7 @@ module.exports = {
 				fields,
 				timestamp: new Date(),
 				footer: {
-					text: t `HoyoLab Auto Check-In (${i + 1}/${notifications.length}) Executed`,
+					text: t `HoYoUtils Check-In (${i + 1}/${notifications.length}) Executed`,
 					icon_url: message.assets.logo
 				}
 			};

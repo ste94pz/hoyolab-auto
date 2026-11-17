@@ -164,9 +164,19 @@ dist
 
 .vscode/
 
-# Codex Agent settings
+# Private development documentation and research
 
 AGENTS.md
+.codex-private/
+.codex/
+.agents/
+
+# Private captures
+
+*.har
+*.mitm
+*.pcap
+*.pcapng
 
 # yarn v2
 
@@ -195,4 +205,4 @@ generated-cookie.txt
 diff.sh
 
 # npm
-package-lock.json
+# package-lock.json is tracked for reproducible installs.

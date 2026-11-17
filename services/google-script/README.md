@@ -1,4 +1,9 @@
-# HoyoLab Check-In Helper
+# HoYoUtils for Google Apps Script
+
+A standalone implementation with its own configuration and Google triggers.
+[Project](../../README.md) · [Documentation](../../docs/README.md)
+
+The screenshots below are retained from the original HoyoLab Auto guide.
 
 ## Contents
 
@@ -42,8 +47,7 @@
      [the desired language catalog](../../localization/README.md) into a new
      `.gs` file and [the shared formatter](../../localization/index.js) into
      `Localization.gs`.
-   - Replace any existing code in the script editor with the provided Apps
-     Script code. It should look like this:
+   - Replace any existing code in the script editor with the provided [Apps Script code](index.js). It should look like this:
 
    ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/4a0a5a30-c990-41f2-802e-1ba6f45c0c43)
 
@@ -83,7 +87,7 @@
 
    - **Select a character (optional):** For Genshin Impact, Honkai: Star Rail,
      and Zenless Zone Zero, an entry can specify the in-game UID and exact server
-     code, using the same `character` format as the [Node.js bot](../../README.md):
+     code, using the same `character` format as the [Node.js bot](../../docs/CHARACTERS.md):
 
      ```javascript
      genshin: {
