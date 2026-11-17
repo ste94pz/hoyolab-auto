@@ -109,10 +109,7 @@
             data: [
                 {
                     cookie: '',
-                    // Enable this if you want to automatically redeem codes
-                    // Please note that if you have one account with characters in multiple servers
-                    // the code will be redeemed but you won't get the reward
-                    // so please be careful when enabling this, and only enable it on the account that you want to redeem the code
+                    character: null, // Optional { uid: '123456789', region: 'SERVER_CODE' }; see README
                     redeemCode: false,
                     dailiesCheck: true, // Enable this if you want to get reminded to do your daily commissions
                     weekliesCheck: true, // Enable this if you want to get reminded to do your weeklies
@@ -135,6 +132,7 @@
                     hilichurl: {
                         check: false, // Enable to auto-complete Hilichurl Machine Workshop tasks and exchange for Primogems
                         redeem: true, // Auto-redeem primogem codes obtained from exchange
+                        bindCharacter: false, // Allow linking the explicit character selection to an unbound event
                     },
                     discord: {
                         // Your Discord user ID to ping you when to do your dailies/weeklies (will only work if discord bot / webhook is configured)
@@ -165,6 +163,7 @@
                 // Account #1
                 {
                     cookie: '',
+                    character: null, // Optional { uid: '123456789', region: 'SERVER_CODE' }; see README
                     redeemCode: false,
                     dailiesCheck: false,
                     weekliesCheck: false,
@@ -253,6 +252,7 @@
             data: [
                 {
                     cookie: '',
+                    character: null, // Optional { uid: '123456789', region: 'SERVER_CODE' }; see README
                     redeemCode: false,
                     shopStatus: false, // This will check if your shop has finished selling videos
                     dailiesCheck: false,

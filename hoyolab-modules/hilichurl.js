@@ -45,7 +45,10 @@ module.exports = class HilichurlWorkshop {
 
 	#buildEndpoint (endpoint) {
 		// Genshin uses underscores instead of hyphens
-		return `${HILICHURL_BASE_URL}/${endpoint.replace(/-/g, "_")}`;
+		const base = endpoint === "bind-game-info"
+			? "https://sg-act-public-api.hoyolab.com/event/e2023mimotravel/qiuqiu"
+			: HILICHURL_BASE_URL;
+		return `${base}/${endpoint.replace(/-/g, "_")}`;
 	}
 
 	async #request (endpoint, options = {}) {
@@ -78,7 +81,7 @@ module.exports = class HilichurlWorkshop {
 		}
 
 		// Retry logic with exponential backoff for rate limits
-		const maxRetries = 10;
+		const maxRetries = endpoint === "bind-game-info" ? 1 : 10;
 		const baseDelay = 500; // 500ms initial delay
 		const maxDelay = 30000; // 30s max delay
 
@@ -128,6 +131,10 @@ module.exports = class HilichurlWorkshop {
 			return { success: false };
 		}
 
+		if (res.body?.data?.is_login === false) {
+			return { success: false, message: t("Please log in to HoYoLAB before running Hilichurl.") };
+		}
+
 		// Genshin uses act_list[].act_info structure
 		const gameList = Array.isArray(res.body?.data?.act_list)
 			? res.body.data.act_list.map(item => item?.act_info).filter(Boolean)
@@ -153,9 +160,13 @@ module.exports = class HilichurlWorkshop {
 			return { success: false, message };
 		}
 
+		const entry = res.body.data.act_list.find(item => item?.act_info === game);
 		return {
 			success: true,
 			data: {
+				bound: entry.bind_uid,
+				boundUid: entry.uid,
+				boundRegion: entry.region,
 				gameId: game.game_id,
 				versionId: game.version_id,
 				points: game.point,
@@ -165,6 +176,41 @@ module.exports = class HilichurlWorkshop {
 				hasLottery: game.lottery_exist
 			}
 		};
+	}
+
+	async prepareEvent (account, info, allowBinding = false) {
+		const fail = message => ({ success: false, message });
+		if (account.character && (String(account.uid) !== account.character.uid || account.region !== account.character.region)) {
+			return fail(t("The selected character does not match the logged-in character. Restart the bot before running Hilichurl."));
+		}
+		if (info.bound === false) {
+			if (!allowBinding || !account.character || account.hilichurl?.bindCharacter !== true) {
+				return fail(t("Hilichurl requires a linked character. Select character.uid and character.region, then enable hilichurl.bindCharacter or link the character on HoYoLAB."));
+			}
+			const res = await this.#request("bind-game-info", {
+				method: "POST",
+				data: { uid: account.character.uid, region: account.character.region, game_id: 2, version_id: info.versionId },
+				cookie: this.#getCookieData(account)
+			});
+			if (res.statusCode !== 200 || res.body?.retcode !== 0) {
+				app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
+					message: t("Failed to bind the selected Hilichurl character"),
+					args: { httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
+				});
+				return fail(t("Failed to bind the selected Hilichurl character"));
+			}
+			const confirmed = await this.getGameInfo(account);
+			if (!confirmed.success || String(confirmed.data.versionId) !== String(info.versionId)
+				|| confirmed.data.bound !== true) {
+				return fail(t("Could not confirm the Hilichurl character binding. No tasks or exchanges were attempted."));
+			}
+			return this.prepareEvent(account, confirmed.data);
+		}
+		if (account.character && (info.bound !== true
+			|| String(info.boundUid) !== account.character.uid || info.boundRegion !== account.character.region)) {
+			return fail(t("Hilichurl is not bound to the selected character. Check the event on HoYoLAB; the bot will not replace an existing binding."));
+		}
+		return { success: true, data: info };
 	}
 
 	async getTasks (accountData, versionId) {
@@ -335,17 +381,19 @@ module.exports = class HilichurlWorkshop {
 			shopStatus: []
 		};
 
-		const attempt = async (stage, operation) => {
+		const attempt = async (stage, operation, safeMessage = false) => {
+			let detail;
 			try {
 				const result = await operation();
 				if (result.success) {
 					return result;
 				}
+				detail = safeMessage ? result.message : undefined;
 			}
 			catch {
 				// Transport errors may contain authenticated request options.
 			}
-			const message = t `Hilichurl operation failed: ${stage}`;
+			const message = detail || t `Hilichurl operation failed: ${stage}`;
 			results.errors.push(message);
 			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
 			return { success: false, message };
@@ -356,8 +404,12 @@ module.exports = class HilichurlWorkshop {
 			return { success: false, status: "failed", message: gameInfo.message, data: results };
 		}
 
-		const { versionId } = gameInfo.data;
-		results.points = gameInfo.data.points;
+		const prepared = await attempt("event_character", () => this.prepareEvent(accountData, gameInfo.data, true), true);
+		if (!prepared.success) {
+			return { success: false, status: "failed", message: prepared.message, data: results };
+		}
+		const { versionId } = prepared.data;
+		results.points = prepared.data.points;
 
 		app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Starting Hilichurl Workshop automation - Current points: ${results.points}`);
 
@@ -395,7 +447,17 @@ module.exports = class HilichurlWorkshop {
 
 		// Refresh points after claiming tasks
 		const updatedGameInfo = await attempt("refresh_index", () => this.getGameInfo(accountData));
+		if (!updatedGameInfo.success && accountData.character) {
+			return { success: false, status: "partial", message: results.errors.join("; "), data: results };
+		}
 		if (updatedGameInfo.success) {
+			const refreshed = await attempt("event_character", () => this.prepareEvent(accountData, updatedGameInfo.data), true);
+			if (!refreshed.success || String(updatedGameInfo.data.versionId) !== String(versionId)) {
+				const message = t("Hilichurl event identity changed during the run. No shop exchanges were attempted.");
+				results.errors.push(message);
+				app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
+				return { success: false, status: "partial", message: results.errors.join("; "), data: results };
+			}
 			results.points = updatedGameInfo.data.points;
 		}
 
@@ -490,6 +552,11 @@ module.exports = class HilichurlWorkshop {
 		const gameInfo = await this.getGameInfo(accountData);
 		if (!gameInfo.success) {
 			return { success: false };
+		}
+
+		const prepared = await this.prepareEvent(accountData, gameInfo.data);
+		if (!prepared.success) {
+			return prepared;
 		}
 
 		const shopItems = await this.getShopItems(accountData, gameInfo.data.versionId);

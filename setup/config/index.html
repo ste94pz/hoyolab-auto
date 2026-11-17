@@ -409,6 +409,25 @@
                 <label for="genshinCookie" data-i18n="Genshin Impact Cookie:">Genshin Impact Cookie:</label>
                 <input type="text" id="genshinCookie" placeholder="">
 
+                <label for="genshinCharacterRegion" data-i18n="Character server (optional):">Character server (optional):</label>
+                <select id="genshinCharacterRegion" data-character-region>
+                    <option value="" data-i18n="Automatic (legacy)">Automatic (legacy)</option>
+                    <option value="os_usa">os_usa</option>
+                    <option value="os_euro">os_euro</option>
+                    <option value="os_asia">os_asia</option>
+                    <option value="os_cht">os_cht</option>
+                </select>
+                <label for="genshinCharacterUid" data-i18n="Character UID (optional):">Character UID (optional):</label>
+                <input type="text" id="genshinCharacterUid" data-character-uid inputmode="numeric" placeholder="123456789">
+
+                <label for="genshinHilichurlCheck" data-i18n="Hilichurl automation:">Hilichurl automation:</label>
+                <select id="genshinHilichurlCheck"><option value="false">false</option><option value="true">true</option></select>
+                <label for="genshinHilichurlRedeem" data-i18n="Redeem Hilichurl codes:">Redeem Hilichurl codes:</label>
+                <select id="genshinHilichurlRedeem"><option value="true">true</option><option value="false">false</option></select>
+                <label for="genshinHilichurlBind" data-i18n="Allow linking the selected character to Hilichurl:">Allow linking the selected character to Hilichurl:</label>
+                <select id="genshinHilichurlBind"><option value="false">false</option><option value="true">true</option></select>
+
+
                 <label for="genshinredeemCode" data-i18n="redeemCode:">redeemCode:</label>
                 <div class="small-text" data-i18n="false by default">false by default</div>
                 <select id="genshinredeemCode">
@@ -417,11 +436,7 @@
                     <option value="false" data-i18n="false">false</option>
                 </select>
                 <div class="small-text" data-i18n="Enable this if you want to automatically redeem codes">Enable this if you want to automatically redeem codes</div>
-                <div class="small-text" data-i18n="Please note that if you have one account with characters in multiple servers">Please note that if you have one account with characters in multiple servers
-                </div>
-                <div class="small-text" data-i18n="the code will be redeemed but you won't get the reward">the code will be redeemed but you won't get the reward</div>
-                <div class="small-text" data-i18n="so please be careful when enabling this, and only enable it on the account that you want to redeem the code">so please be careful when enabling this, and only enable it on the account that
-                    you want to redeem the code</div>
+
 
                 <label for="genshindailiesCheck" data-i18n="DailiesCheck:">DailiesCheck:</label>
                 <select id="genshindailiesCheck">
@@ -540,6 +555,18 @@
 
                 <label for="starrailCookie" data-i18n="Honkai: Star Rail Cookie:">Honkai: Star Rail Cookie:</label>
                 <input type="text" id="starrailCookie" placeholder="">
+
+                <label for="starrailCharacterRegion" data-i18n="Character server (optional):">Character server (optional):</label>
+                <select id="starrailCharacterRegion" data-character-region>
+                    <option value="" data-i18n="Automatic (legacy)">Automatic (legacy)</option>
+                    <option value="prod_official_usa">prod_official_usa</option>
+                    <option value="prod_official_eur">prod_official_eur</option>
+                    <option value="prod_official_asia">prod_official_asia</option>
+                    <option value="prod_official_cht">prod_official_cht</option>
+                </select>
+                <label for="starrailCharacterUid" data-i18n="Character UID (optional):">Character UID (optional):</label>
+                <input type="text" id="starrailCharacterUid" data-character-uid inputmode="numeric" placeholder="123456789">
+
                 <div class="small-text" data-i18n="If you have same account for both genshin and starrail">If you have same account for both genshin and starrail</div>
                 <div class="small-text" data-i18n="You can copy the cookie values from the genshin account">You can copy the cookie values from the genshin account</div>
                 <div class="small-text" data-i18n="Same goes for any other game that will be supported in the future">Same goes for any other game that will be supported in the future</div>
@@ -647,6 +674,18 @@
 
                 <label for="zenlessCookie" data-i18n="Zenless Zone Zero Cookie:">Zenless Zone Zero Cookie:</label>
                 <input type="text" id="zenlessCookie" placeholder="">
+
+                <label for="zenlessCharacterRegion" data-i18n="Character server (optional):">Character server (optional):</label>
+                <select id="zenlessCharacterRegion" data-character-region>
+                    <option value="" data-i18n="Automatic (legacy)">Automatic (legacy)</option>
+                    <option value="prod_gf_us">prod_gf_us</option>
+                    <option value="prod_gf_eu">prod_gf_eu</option>
+                    <option value="prod_gf_jp">prod_gf_jp</option>
+                    <option value="prod_gf_sg">prod_gf_sg</option>
+                </select>
+                <label for="zenlessCharacterUid" data-i18n="Character UID (optional):">Character UID (optional):</label>
+                <input type="text" id="zenlessCharacterUid" data-character-uid inputmode="numeric" placeholder="123456789">
+
 
                 <label for="zenlessredeemCode" data-i18n="redeemCode:">redeemCode:</label>
                 <select id="zenlessredeemCode">
@@ -1090,11 +1129,16 @@
 
         function fillGenshinAccount(accountElement, data) {
             const entry = data || {};
+            setInputValue(accountElement.querySelector('[data-character-uid]'), entry.character?.uid);
+            setInputValue(accountElement.querySelector('[data-character-region]'), entry.character?.region);
             setInputValue(accountElement.querySelector('input[id*="genshinCookie"]'), entry.cookie);
             setBooleanSelectValue(accountElement.querySelector('select[id*="genshinredeemCode"]'), entry.redeemCode);
             setBooleanSelectValue(accountElement.querySelector('select[id*="genshindailiesCheck"]'), entry.dailiesCheck);
             setBooleanSelectValue(accountElement.querySelector('select[id*="genshinweekliesCheck"]'), entry.weekliesCheck);
 
+            setBooleanSelectValue(accountElement.querySelector('#genshinHilichurlCheck'), entry.hilichurl?.check);
+            setBooleanSelectValue(accountElement.querySelector('#genshinHilichurlRedeem'), entry.hilichurl?.redeem, 'true');
+            setBooleanSelectValue(accountElement.querySelector('#genshinHilichurlBind'), entry.hilichurl?.bindCharacter);
             const realm = entry.realm || {};
             setBooleanSelectValue(accountElement.querySelector('select[id*="genshinrealmCheck"]'), realm.check);
             setBooleanSelectValue(accountElement.querySelector('select[id*="genshinrealmpersistent"]'), realm.persistent);
@@ -1114,6 +1158,8 @@
 
         function fillStarRailAccount(accountElement, data) {
             const entry = data || {};
+            setInputValue(accountElement.querySelector('[data-character-uid]'), entry.character?.uid);
+            setInputValue(accountElement.querySelector('[data-character-region]'), entry.character?.region);
             setInputValue(accountElement.querySelector('input[id*="starrailCookie"]'), entry.cookie);
             setBooleanSelectValue(accountElement.querySelector('select[id*="starrailredeemCode"]'), entry.redeemCode);
             setBooleanSelectValue(accountElement.querySelector('select[id*="starraildailiesCheck"]'), entry.dailiesCheck);
@@ -1134,6 +1180,8 @@
 
         function fillZenlessAccount(accountElement, data) {
             const entry = data || {};
+            setInputValue(accountElement.querySelector('[data-character-uid]'), entry.character?.uid);
+            setInputValue(accountElement.querySelector('[data-character-region]'), entry.character?.region);
             setInputValue(accountElement.querySelector('input[id*="zenlessCookie"]'), entry.cookie);
             setBooleanSelectValue(accountElement.querySelector('select[id*="zenlessredeemCode"]'), entry.redeemCode);
             setBooleanSelectValue(accountElement.querySelector('select[id*="zenlessshopStatus"]'), entry.shopStatus);
@@ -1251,7 +1299,29 @@
             recalculateAccountNumbers(); // Recalculate after addition
         };
 
+        function readCharacterSelection(accountElement) {
+            const uid = accountElement.querySelector('[data-character-uid]')?.value.trim() || '';
+            const region = accountElement.querySelector('[data-character-region]')?.value || '';
+            if (!uid && !region) return {};
+            if (!/^[1-9]\d*$/.test(uid) || !region) {
+                throw new Error(t('Configure both a numeric character UID and a server, or leave both empty.'));
+            }
+            return { character: { uid, region } };
+        }
+
         function generateConfig() {
+            try {
+                document.querySelectorAll('.account').forEach(readCharacterSelection);
+                document.querySelectorAll('#genshinaccounts .account').forEach(accountElement => {
+                    if (accountElement.querySelector('#genshinHilichurlBind')?.value === 'true'
+                        && !readCharacterSelection(accountElement).character) {
+                        throw new Error(t('Hilichurl binding requires an explicit Genshin character selection.'));
+                    }
+                });
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
             const tnEl = document.getElementById('testNotificationEnabled');
             const testNotifyEnabled = tnEl ? (tnEl.value === 'true') : false;
             const gotifyPriority = Number(document.getElementById('gotifyPriority').value || '5');
@@ -1356,6 +1426,7 @@
             zenlessAccounts.forEach(accountElement => {
                 const accountData = {
                     cookie: accountElement.querySelector('input[id*="zenlessCookie"]').value || '',
+                    ...readCharacterSelection(accountElement),
                     redeemCode: accountElement.querySelector('select[id*="zenlessredeemCode"]').value === 'true',
                     shopStatus: accountElement.querySelector('select[id*="zenlessshopStatus"]').value === 'true',
                     dailiesCheck: accountElement.querySelector('select[id*="zenlessdailiesCheck"]').value === 'true',
@@ -1441,6 +1512,7 @@
             }
 
             const accountData = {
+                ...readCharacterSelection(accountElement),
                 cookie: cookie,
                 redeemCode: redeemCode,
                 dailiesCheck: dailiesCheck,
@@ -1448,6 +1520,11 @@
             };
 
             if (isGenshin) {
+                accountData.hilichurl = {
+                    check: accountElement.querySelector('#genshinHilichurlCheck').value === 'true',
+                    redeem: accountElement.querySelector('#genshinHilichurlRedeem').value === 'true',
+                    bindCharacter: accountElement.querySelector('#genshinHilichurlBind').value === 'true',
+                };
                 accountData.realm = {
                     check: realmCheck,
                     persistent: realmPersistent,

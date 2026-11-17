@@ -1,3 +1,4 @@
+const { selectCharacter } = require("../character-selection.js");
 const { t } = require("../../localization/index.js");
 
 const checkInDescriptor = require("./check-in-descriptor.js");
@@ -99,7 +100,8 @@ module.exports = class StarRail extends require("../template.js") {
 			}
 
 			const { list } = res.data;
-			const data = list.find(account => account.game_id === this.gameId);
+			const card = list.find(account => account.game_id === this.gameId);
+			const data = await selectCharacter(account, this.name, card);
 			if (!data) {
 				throw new app.Error({
 					message: t("No Honkai: Star Rail account can be found with the provided game account"),
@@ -117,6 +119,7 @@ module.exports = class StarRail extends require("../template.js") {
 			this.accounts.push({
 				platform: this.name,
 				uid: data.game_role_id,
+				character: account.character,
 				nickname: data.nickname,
 				region: data.region,
 				timezone: (offset === "TW/HK/MO") ? "SEA" : offset,

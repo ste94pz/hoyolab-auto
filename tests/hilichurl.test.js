@@ -392,3 +392,116 @@ test("successful task activity returns success status", async t => {
 	assert.equal(result.status, "success");
 	assert.deepEqual(result.data.errors, []);
 });
+
+const selectedAccount = (bindCharacter = false) => ({ ...account, uid: "222", character: { uid: "222", region: "os_euro" }, hilichurl: { bindCharacter } });
+const eventInfo = (bound, overrides = {}, version = 72) => ok({ is_login: true,
+	act_list: [{
+		act_info: { game_id: 2, version_id: version, point: 0 },
+		bind_uid: bound,
+		uid: bound ? "222" : "0",
+		region: bound ? "os_euro" : "",
+		...overrides
+	}]});
+
+test("explicit binding sends the captured contract once and confirms identity before lists", async t => {
+	const { workshop, replies, requests } = await setup(t, "it-it");
+	replies.push(eventInfo(false), ok(), eventInfo(true), ok({ task_list: []}), eventInfo(true), shop());
+	const result = await workshop.run(selectedAccount(true));
+	assert.equal(result.success, true);
+	assert.equal(result.status, "no_activity");
+	const posts = requests.filter(r => r.method === "POST");
+	assert.equal(posts.length, 1);
+	assert.equal(posts[0].url.href, "https://sg-act-public-api.hoyolab.com/event/e2023mimotravel/qiuqiu/bind_game_info?lang=it-it");
+	assert.deepEqual(JSON.parse(posts[0].body), { uid: "222", region: "os_euro", game_id: 2, version_id: 72 });
+	assert.equal(posts[0].headers["x-rpc-client_type"], 2);
+	assert.equal(posts[0].headers.ds, undefined);
+	assert.deepEqual(requests.map(r => r.url.pathname.split("/").pop()), ["index", "bind_game_info", "index", "task_list", "index", "exchange_list"]);
+});
+
+for (const acc of [account, selectedAccount(false)]) {
+	test("unbound event requires explicit consent and stops before tasks or shop", async t => {
+		const { workshop, replies, requests } = await setup(t);
+		replies.push(eventInfo(false));
+		const result = await workshop.run(acc);
+		assert.equal(result.success, false);
+		assert.equal(result.status, "failed");
+		assert.match(result.message, /requires a linked character/);
+		assert.equal(requests.length, 1);
+	});
+}
+
+for (const changed of [{ uid: "333" }, { region: "os_usa" }, { bind_uid: undefined }]) {
+	test(`binding mismatch cannot be silently replaced: ${JSON.stringify(changed)}`, async t => {
+		const { workshop, replies, requests } = await setup(t);
+		replies.push(eventInfo(true, changed));
+		const result = await workshop.run(selectedAccount(true));
+		assert.equal(result.success, false);
+		assert.match(result.message, /not bound to the selected character/);
+		assert.equal(requests.length, 1);
+	});
+}
+
+for (const failure of [rejected(), { statusCode: 503 }, { statusCode: 429 }]) {
+	test(`binding failure stops without automatic retries (${failure.statusCode ?? -510001})`, async t => {
+		const { workshop, replies, requests } = await setup(t);
+		replies.push(eventInfo(false), failure);
+		const result = await workshop.run(selectedAccount(true));
+		assert.equal(result.success, false);
+		assert.equal(requests.length, 2);
+		assert.match(result.message, /Failed to bind/);
+	});
+}
+
+for (const confirmation of [eventInfo(false), eventInfo(true, { uid: "333" }), eventInfo(true, {}, 73), rejected()]) {
+	test("binding must be confirmed for the same version and selected character", async t => {
+		const { workshop, replies, requests } = await setup(t);
+		replies.push(eventInfo(false), ok(), confirmation);
+		assert.equal((await workshop.run(selectedAccount(true))).success, false);
+		assert.equal(requests.length, 3);
+	});
+}
+
+test("restock lookup never binds even with bindCharacter enabled", async t => {
+	const { workshop, replies, requests } = await setup(t);
+	replies.push(eventInfo(false));
+	const result = await workshop.getNextRestockTime(selectedAccount(true));
+	assert.equal(result.success, false);
+	assert.equal(requests.length, 1);
+	assert.equal(requests[0].method, "GET");
+});
+
+test("event identity changes after tasks stop all shop exchanges", async t => {
+	const { workshop, replies, requests } = await setup(t);
+	replies.push(eventInfo(true), ok({ task_list: []}), eventInfo(true, { uid: "333" }));
+	const result = await workshop.run(selectedAccount(false));
+	assert.equal(result.success, false);
+	assert.equal(result.status, "partial");
+	assert.equal(requests.length, 3);
+	assert.match(result.message, /identity changed/);
+});
+
+
+test("anonymous index never attempts binding", async t => {
+	const { workshop, replies, requests } = await setup(t);
+	const response = eventInfo(false);
+	response.body.data.is_login = false;
+	replies.push(response);
+	assert.equal((await workshop.run(selectedAccount(true))).success, false);
+	assert.equal(requests.length, 1);
+});
+
+test("selected identity cannot change between login and Hilichurl", async t => {
+	const { workshop, replies, requests } = await setup(t);
+	replies.push(eventInfo(true));
+	const result = await workshop.run({ ...selectedAccount(true), uid: "333" });
+	assert.equal(result.success, false);
+	assert.match(result.message, /does not match the logged-in/);
+	assert.equal(requests.length, 1);
+});
+
+test("selected character refresh failure prevents shop requests", async t => {
+	const { workshop, replies, requests } = await setup(t);
+	replies.push(eventInfo(true), ok({ task_list: []}), rejected());
+	assert.equal((await workshop.run(selectedAccount(false))).success, false);
+	assert.equal(requests.length, 3);
+});

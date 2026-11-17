@@ -1,3 +1,4 @@
+const { normalizeCharacter } = require("./character-selection.js");
 const { t } = require("../localization/index.js");
 
 const { requestPassportRefresh } = require("./passport-request.js");
@@ -92,6 +93,8 @@ module.exports = class HoyoLab {
 				// this will just skip the account if there is no cookie provided
 				continue;
 			}
+
+			const character = normalizeCharacter(account.character, this.#name);
 
 			if (this.#name === "honkai" || this.#name === "tot") {
 				const parsedCookie = this.#parseCookie(account.cookie);
@@ -217,6 +220,13 @@ module.exports = class HoyoLab {
 				});
 			}
 
+			if (account.hilichurl?.bindCharacter !== undefined && typeof account.hilichurl.bindCharacter !== "boolean") {
+				throw new app.Error({ message: t("hilichurl.bindCharacter must be a boolean.") });
+			}
+			if (account.hilichurl?.bindCharacter === true && (!character || this.#name !== "genshin")) {
+				throw new app.Error({ message: t("Hilichurl binding requires an explicit Genshin character selection.") });
+			}
+
 			const parsedCookie = this.#parseCookie(account.cookie);
 			if (redeemCode && ["starrail", "nap"].includes(this.#name) && !parsedCookie.redemptionDeviceUuid) {
 				app.Logger.warn("HoyoLab", `The cookie for ${this.name} is missing _MHYUUID. Configure a newly acquired cookie to enable code redemption.`);
@@ -237,6 +247,7 @@ module.exports = class HoyoLab {
 				stamina,
 				expedition,
 				mimo: account.mimo,
+				character,
 				hilichurl: account.hilichurl,
 				discord: account.discord ?? null,
 				allowedPlatforms: account.allowedPlatforms ?? null

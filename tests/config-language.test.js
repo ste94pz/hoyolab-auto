@@ -16,11 +16,19 @@ const createSetup = () => {
 	const html = readFileSync(join(__dirname, "../setup/config/index.html"), "utf8");
 	const $ = cheerio.load(html);
 	let download;
+	const alerts = [];
 	const wrap = (element) => {
 		if (!element.length) {
 			return null;
 		}
 		return {
+			_element: element,
+			get innerHTML () { return element.html(); },
+			get onclick () { return element[0]._onclick; },
+			set onclick (value) { element[0]._onclick = value; },
+			click () { element[0]._onclick?.(); },
+			appendChild: child => element.append(child._element),
+			remove: () => element.remove(),
 			get value () { return element.val(); },
 			set value (value) { element.val(value); },
 			get placeholder () { return element.attr("placeholder"); },
@@ -36,9 +44,11 @@ const createSetup = () => {
 		};
 	};
 	const context = {
+		alert: message => alerts.push(message),
 		HoyoLabI18n: require("../localization/index.js"),
 		// This adapter tests values and import/export; rendering is covered separately.
 		updateLanguage: () => {},
+		localizeForm: () => {},
 		setLocalizedText: (element, source, ...values) => {
 			element.textContent = require("../localization/index.js").t(source, ...values);
 		},
@@ -54,7 +64,9 @@ const createSetup = () => {
 			querySelectorAll: (selector) => $(selector).toArray().map(node => wrap($(node))),
 			body: { appendChild: () => {}, removeChild: () => {} },
 			createElement: (tag) => {
-				assert.equal(tag, "a");
+				if (tag !== "a") {
+					return wrap($(`<${tag}></${tag}>`));
+				}
 				return {
 					click () { assert.equal(this.download, "config.json5"); }
 				};
@@ -62,7 +74,7 @@ const createSetup = () => {
 		}
 	};
 	runInNewContext($("script:not([src])").text(), context);
-	return { context, exportedText: () => download.text() };
+	return { context, alerts, exportedText: () => download.text() };
 };
 
 test("setup preserves Tears of Themis redemption opt-in across import/export", async () => {
@@ -128,5 +140,57 @@ for (const [language, expected, short] of [
 				assert.equal(JSON5.parse(text).language, expected);
 			}
 		}
+	});
+}
+
+for (const [game, region] of [["genshin", "os_euro"], ["starrail", "prod_official_eur"], ["zenless", "prod_gf_eu"]]) {
+	test(`setup preserves and clears explicit character selection for ${game}`, async () => {
+		const setup = createSetup();
+		const character = { uid: "222222222", region };
+		setup.context.importConfigFromText(JSON5.stringify({ accounts: [{ type: game,
+			active: true,
+			data: [{ cookie: "synthetic",
+				character,
+				...(game === "genshin" && { hilichurl: { check: true, redeem: false, bindCharacter: true } }) }]}]}));
+		setup.context.generateConfig();
+		let result = JSON5.parse(await setup.exportedText()).accounts.find(a => a.type === game).data[0];
+		assert.deepEqual(result.character, character);
+		if (game === "genshin") {
+			assert.deepEqual(result.hilichurl, { check: true, redeem: false, bindCharacter: true });
+		}
+		setup.context.importConfigFromText(JSON5.stringify({ accounts: [{ type: game, active: true, data: [{ cookie: "synthetic" }]}]}));
+		setup.context.generateConfig();
+		result = JSON5.parse(await setup.exportedText()).accounts.find(a => a.type === game).data[0];
+		assert.equal(Object.hasOwn(result, "character"), false);
+		if (game === "genshin") {
+			assert.equal(result.hilichurl.bindCharacter, false);
+		}
+	});
+}
+
+
+test("setup keeps separate selections and binding consent when copying account forms", async () => {
+	const setup = createSetup();
+	const data = [
+		{ cookie: "synthetic-a", character: { uid: "222", region: "os_euro" }, hilichurl: { check: true, redeem: false, bindCharacter: true } },
+		{ cookie: "synthetic-b", character: { uid: "333", region: "os_usa" }, hilichurl: { check: false, redeem: true, bindCharacter: false } }
+	];
+	setup.context.importConfigFromText(JSON5.stringify({ accounts: [{ type: "genshin", active: true, data }]}));
+	setup.context.generateConfig();
+	assert.deepEqual(setup.alerts, []);
+	const result = JSON5.parse(await setup.exportedText()).accounts.find(a => a.type === "genshin").data;
+	assert.equal(result.length, 2);
+	for (const [i, account] of result.entries()) {
+		assert.deepEqual(account.character, data[i].character);
+		assert.deepEqual(account.hilichurl, data[i].hilichurl);
+	}
+});
+
+for (const entry of [{ character: { uid: "222" } }, { character: { uid: "oops", region: "os_euro" } }, { hilichurl: { bindCharacter: true } }]) {
+	test(`setup refuses an incomplete selection or binding consent without selection: ${JSON.stringify(entry)}`, () => {
+		const setup = createSetup();
+		setup.context.importConfigFromText(JSON5.stringify({ accounts: [{ type: "genshin", active: true, data: [{ cookie: "synthetic", ...entry }]}]}));
+		setup.context.generateConfig();
+		assert.equal(setup.alerts.length, 1);
 	});
 }

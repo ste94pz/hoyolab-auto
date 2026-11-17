@@ -216,6 +216,29 @@ ZZZ account discovery and Realtime Notes use the current Game Record WebView
 APIs without DS, preserving the configured locale and existing Notes/cache
 output.
 
+For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero, select a character
+explicitly in each `accounts[].data[]` entry when the account has characters on
+multiple servers:
+
+```json5
+character: { uid: '123456789', region: 'os_euro' },
+```
+
+Use the in-game character UID as a string, not the HoYoLAB account ID. The bot
+verifies that UID and server against the characters linked to the account at
+login. An invalid or unavailable selection stops that account's login rather
+than selecting another character. The selected identity is used for code
+redemption, Notes, diaries, and other character-specific operations. Cookie-only
+check-in APIs keep their existing account-wide behavior. Omit `character` or use
+`null` to retain the previous automatic selection. The setup page can import,
+edit, and export the selection without accessing your account.
+
+| Game | Server codes |
+| --- | --- |
+| Genshin Impact | `os_usa`, `os_euro`, `os_asia`, `os_cht` |
+| Honkai: Star Rail | `prod_official_usa`, `prod_official_eur`, `prod_official_asia`, `prod_official_cht` |
+| Zenless Zone Zero | `prod_gf_us`, `prod_gf_eu`, `prod_gf_jp`, `prod_gf_sg` |
+
 Hilichurl Workshop automatically completes task types `1`, `2`, `4`, `10`,
 `101`, and `102`. Reading and video tasks (`101`/`102`) wait for the supplied
 `read_seconds` plus one second when positive, then use the desktop event API;
@@ -225,6 +248,15 @@ exchanges may return no redemption code; successful official point-cost
 exchanges have also been observed. The timed headless flow is covered by offline
 tests; backend acceptance and the sufficiency of the waiting period remain
 unverified live.
+
+Hilichurl events can require a character association separate from HoYoLAB
+login. With an explicit `character` selection, set `hilichurl.bindCharacter: true`
+to allow the automation to link that character to an unbound event. This option
+is **false by default** and changes the event's account association when enabled.
+The bot confirms the resulting UID, server, and event version before processing
+tasks or rewards. It refuses an existing association with another character;
+it never silently replaces that association. Restock lookups do not create
+associations. An unbound event without this opt-in produces an actionable error.
 
 Hilichurl validates the event version and advertised activity dates before
 running. Failed reads or operations produce warnings and an unsuccessful result
