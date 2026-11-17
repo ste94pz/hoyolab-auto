@@ -39,8 +39,11 @@ const setup = (game, language = undefined, configuredCookie = cookie) => {
 		UrlFetchApp: { fetch: (url, options = {}) => {
 			requests.push({ url: new URL(url), options: plain(options) });
 			assert.ok(replies.length, "Unexpected Apps Script HTTP request");
-			const { body = { retcode: 0 }, status = 200 } = replies.shift();
-			return { getResponseCode: () => status, getContentText: () => JSON.stringify(body) };
+			const { body = { retcode: 0 }, status = 200, text, error } = replies.shift();
+			if (error) {
+				throw error;
+			}
+			return { getResponseCode: () => status, getContentText: () => text ?? JSON.stringify(body) };
 		} }
 	});
 	vm.runInContext(source, context);
@@ -251,3 +254,165 @@ for (const game of games.filter(game => game.biz)) {
 		}
 	});
 }
+
+
+const selectedRole = (game, uid = "999", region = game.region) => ({
+	game_biz: game.biz, game_uid: uid, region, nickname: `Selected ${uid}`, level: 30
+});
+const roleReply = list => ({ body: { retcode: 0, data: { list } } });
+
+for (const game of games.filter(game => game.biz)) {
+	test(`Apps Script ${game.name}: verified selection reaches saved identity and redemption`, async () => {
+		const character = { uid: "999", region: game.region };
+		const { game: instance, replies, requests, properties } = setup(game, "it-it", { cookie, character });
+		replies.push({ body: card(game) }, roleReply([selectedRole(game, "888"), selectedRole(game)]), { body: signInfo(true) }, { body: { retcode: 0 } });
+		await instance.checkAndExecute();
+		const [account] = instance.redemptionAccounts;
+		assert.equal(account.uid, "999");
+		assert.equal(account.server, game.region);
+		assert.equal(account.region, "EU");
+		assert.equal(account.nickname, "Selected 999");
+		assert.equal(account.rank, 30);
+		assert.deepEqual(JSON.parse(properties.get(`${game.name}_123_account_details`)), { uid: "999", nickname: "Selected 999", region: "EU", server: game.region });
+		const roleRequest = requests[1];
+		assert.equal(roleRequest.url.origin, "https://api-account-os.hoyolab.com");
+		assert.equal(roleRequest.url.pathname, "/binding/api/getUserGameRolesByLtoken");
+		assert.deepEqual(Object.fromEntries(roleRequest.url.searchParams), { game_biz: game.biz, region: game.region });
+		assert.equal(roleRequest.options.method, "GET");
+		assert.equal(roleRequest.options.headers.Cookie, cookie);
+		assert.equal(roleRequest.options.headers.Origin, "https://act.hoyolab.com");
+		assert.equal(roleRequest.options.headers.DS, undefined);
+		assert.equal(roleRequest.options.payload, undefined);
+		assert.equal((await instance.redeemCode(account, "CODE")).success, true);
+		const request = requests[3];
+		const sent = game.name === "genshin" ? Object.fromEntries(request.url.searchParams) : JSON.parse(request.options.payload);
+		assert.equal(sent.uid, "999");
+		assert.equal(sent.region, game.region);
+		assert.equal(requests[2].url.searchParams.has("uid"), false);
+		assert.doesNotMatch(JSON.stringify([...properties]), /synthetic-cookie|ltoken_v2/);
+	});
+
+	test(`Apps Script ${game.name}: scheduled redemption uses the configured character`, async () => {
+		const { context, requests, replies, properties } = setup(game);
+		context.testName = game.name;
+		context.testEntry = { cookie, character: { uid: "999", region: game.region } };
+		vm.runInContext("config[testName].data = [testEntry]; config.enableCodeRedemption = true;", context);
+		replies.push({ body: card(game) }, roleReply([selectedRole(game)]), { body: signInfo(true) }, { body: { active: [{ code: "CODE", rewards: []}]} }, { body: { retcode: 0 } });
+		await vm.runInContext("checkInGame(testName)", context);
+		const request = requests[4];
+		const sent = game.name === "genshin" ? Object.fromEntries(request.url.searchParams) : JSON.parse(request.options.payload);
+		assert.equal(sent.uid, "999");
+		assert.equal(sent.region, game.region);
+		assert.equal(properties.get(`${game.name}_EU_999_redeemed_codes`), "[\"CODE\"]");
+		assert.equal(properties.has(`${game.name}_EU_456_redeemed_codes`), false);
+	});
+
+	test(`Apps Script ${game.name}: manual redemption isolates two characters sharing a cookie`, async () => {
+		const { context, requests, replies, properties } = setup(game);
+		context.testName = game.name;
+		context.testEntries = ["888", "999"].map(uid => ({ cookie, character: { uid, region: game.region } }));
+		vm.runInContext("config[testName].data = testEntries; config.enableCodeRedemption = true;", context);
+		const catalog = { body: { active: [{ code: "CODE", rewards: []}]} };
+		replies.push({ body: card(game) }, roleReply([selectedRole(game, "888"), selectedRole(game)]), catalog, { body: { retcode: 0 } }, { body: card(game) }, roleReply([selectedRole(game, "888"), selectedRole(game)]), catalog, { body: { retcode: 0 } });
+		const results = await vm.runInContext("manuallyRedeemCodes(testName)", context);
+		assert.ok(results.every(result => result.success && result.results[0].success));
+		assert.deepEqual(plain(results.map(result => result.account.uid)), ["888", "999"]);
+		assert.equal(requests.length, 8);
+		for (const [index, uid] of [[3, "888"], [7, "999"]]) {
+			const sent = game.name === "genshin" ? Object.fromEntries(requests[index].url.searchParams) : JSON.parse(requests[index].options.payload);
+			assert.equal(sent.uid, uid);
+			assert.equal(sent.region, game.region);
+			assert.equal(properties.get(`${game.name}_EU_${uid}_redeemed_codes`), "[\"CODE\"]");
+		}
+	});
+
+	test(`Apps Script ${game.name}: selecting the legacy character preserves completed-code keys`, async () => {
+		const { game: instance, replies, requests, properties } = setup(game, undefined, { cookie, character: { uid: "456", region: game.region } });
+		properties.set(`${game.name}_EU_456_redeemed_codes`, "[\"CODE\"]");
+		replies.push({ body: card(game) }, roleReply([selectedRole(game, "456")]), { body: signInfo(true) }, { body: { active: [{ code: "CODE", rewards: []}]} });
+		await instance.checkAndExecute();
+		assert.deepEqual(plain(await instance.redeemCodes(instance.redemptionAccounts[0])), []);
+		assert.equal(requests.length, 4);
+		assert.equal(properties.get(`${game.name}_EU_456_redeemed_codes`), "[\"CODE\"]");
+	});
+}
+
+for (const failure of [
+	{ status: 503 },
+	{ body: { retcode: -100, message: cookie } },
+	{ body: { retcode: 0, data: null } },
+	roleReply([]),
+	roleReply([selectedRole(games[0], "888")]),
+	roleReply([selectedRole(games[0], "999", "os_usa")]),
+	roleReply([{ ...selectedRole(games[0]), game_biz: "hkrpg_global" }]),
+	roleReply([selectedRole(games[0]), selectedRole(games[0])]),
+	roleReply([{ ...selectedRole(games[0]), nickname: "" }]),
+	{ text: "invalid JSON" },
+	{ error: new Error(`Transport failure with ${cookie}`) }
+]) {
+	test("Apps Script selection failure stops before check-in, catalog or redemption without leaking credentials", async () => {
+		const { game: instance, replies, requests, properties, logs } = setup(games[0], undefined, { cookie, character: { uid: "999", region: "os_euro" } });
+		const oldDetails = JSON.stringify({ uid: "456", nickname: "Legacy", region: "EU" });
+		properties.set("genshin_123_account_details", oldDetails);
+		replies.push({ body: card(games[0]) }, failure);
+		assert.deepEqual(plain(await instance.checkAndExecute()), []);
+		assert.equal(instance.redemptionAccounts.length, 0);
+		assert.equal(requests.length, 2);
+		assert.equal(properties.get("genshin_123_account_details"), oldDetails);
+		assert.doesNotMatch(JSON.stringify([logs, [...properties]]), /synthetic-cookie|ltoken_v2|Transport failure/);
+	});
+}
+
+for (const character of [undefined, null]) {
+	test(`Apps Script account object preserves legacy discovery without a selection (${character})`, async () => {
+		const { game: instance, replies, requests } = setup(games[0], undefined, { cookie, character });
+		replies.push({ body: card(games[0]) }, { body: signInfo(true) });
+		await instance.checkAndExecute();
+		assert.equal(requests.length, 2);
+		assert.equal(instance.redemptionAccounts[0].uid, "456");
+	});
+}
+
+for (const entry of [null, [], {}, { cookie: "" }, { cookie, character: {} }, { cookie, character: { uid: 999, region: "os_euro" } }, { cookie, character: { uid: "999", region: "os_euro&uid=1" } }]) {
+	test(`Apps Script rejects invalid account entries before requests (${JSON.stringify(entry)})`, () => {
+		assert.throws(() => setup(games[0], undefined, entry), /Invalid Apps Script account|Invalid character selection/);
+	});
+}
+
+test("Apps Script does not advertise character selection for Honkai Impact 3rd", () => {
+	assert.throws(() => setup(games[3], undefined, { cookie, character: { uid: "999", region: "eur01" } }), /Invalid character selection/);
+});
+
+test("Apps Script keep-alive deduplicates legacy and object entries by cookie without role discovery", async () => {
+	const { context, replies, requests } = setup(games[0]);
+	context.testEntries = [cookie, { cookie, character: { uid: "999", region: "os_euro" } }, { cookie, character: { uid: "888", region: "os_usa" } }];
+	vm.runInContext("config.genshin.data = testEntries;", context);
+	replies.push({ body: signInfo(true) });
+	await vm.runInContext("keepAliveCookies()", context);
+	assert.equal(requests.length, 1);
+	assert.equal(requests[0].url.pathname, "/event/sol/info");
+	assert.equal(requests[0].options.headers.Cookie, cookie);
+});
+
+test("Apps Script keeps the exact verified server separate from display region", async () => {
+	const game = games[0];
+	const { game: instance, replies, requests } = setup(game, undefined, { cookie, character: { uid: "999", region: "os_future" } });
+	replies.push({ body: card(game) }, roleReply([selectedRole(game, "999", "os_future")]), { body: signInfo(true) }, { body: { retcode: 0 } });
+	await instance.checkAndExecute();
+	const [account] = instance.redemptionAccounts;
+	assert.equal(account.region, "Unknown");
+	assert.equal(account.server, "os_future");
+	assert.equal((await instance.redeemCode(account, "CODE")).success, true);
+	assert.equal(requests[3].url.searchParams.get("region"), "os_future");
+});
+
+
+test("Apps Script keeps history and paused-code state distinct for servers without a display mapping", () => {
+	const { game: instance, properties } = setup(games[0]);
+	const first = { uid: "999", region: "Unknown", server: "os_future_a", cookie };
+	const second = { ...first, server: "os_future_b" };
+	instance.saveRedeemedCode("CODE", first);
+	assert.deepEqual(plain(instance.getRedeemedCodes(second)), []);
+	assert.notEqual(instance.getPausedCodesKey(first), instance.getPausedCodesKey(second));
+	assert.equal(properties.has("genshin_os_future_a_999_redeemed_codes"), true);
+});

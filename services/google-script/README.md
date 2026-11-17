@@ -81,6 +81,32 @@
      };
      ```
 
+   - **Select a character (optional):** For Genshin Impact, Honkai: Star Rail,
+     and Zenless Zone Zero, an entry can specify the in-game UID and exact server
+     code, using the same `character` format as the [Node.js bot](../../README.md):
+
+     ```javascript
+     genshin: {
+       data: [
+         {
+           cookie: "account_cookie_1",
+           character: { uid: "123456789", region: "os_euro" }
+         }
+       ]
+     }
+     ```
+
+     The script verifies that the character belongs to the cookie's account
+     before check-in or code redemption. Missing or mismatched characters stop
+     that entry without choosing another character. Automatic and manual code
+     redemption use the verified UID and server, with separate code history for
+     each character. Existing cookie-string entries remain supported; an object
+     with `character` omitted or set to `null` retains automatic selection.
+     Keep-alive reads each distinct cookie once, without character discovery.
+     Check-in APIs remain account-wide; this setting does not make their rewards
+     character-specific. Character selection is not supported for Honkai Impact
+     3rd in this script.
+
    - **Discord notifications (optional):** Set `DISCORD_WEBHOOK` to your webhook
      URL to get a Discord message for every check-in.
 

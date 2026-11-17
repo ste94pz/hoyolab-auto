@@ -153,6 +153,7 @@
 			"Hilichurl Workshop is not available.": "L'officina degli Hilichurl non è disponibile.",
 			"Running Hilichurl for Genshin - {0}": "Esecuzione di Hilichurl per Genshin - {0}",
 			"Unknown error": "Errore sconosciuto",
+			"Invalid Apps Script account. Provide a cookie string or an object with a non-empty cookie.": "Account Apps Script non valido. Specificare un cookie come stringa oppure un oggetto con un cookie non vuoto.",
 			"Invalid character selection. Configure both character.uid and character.region for a supported game.": "Selezione del personaggio non valida. Configurare character.uid e character.region per un gioco supportato.",
 			"Could not verify the selected character. Check the account cookie and try again.": "Impossibile verificare il personaggio selezionato. Controllare il cookie dell’account e riprovare.",
 			"The selected character was not found for this account and server.": "Il personaggio selezionato non è stato trovato per questo account e server.",

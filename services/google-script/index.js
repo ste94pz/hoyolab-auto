@@ -2,6 +2,7 @@
  setupCookieKeepAlive, checkInAllGames, redeemGenshinCodes, redeemStarRailCodes, redeemZenlessCodes */
 // Global entry points and compatibility helpers are available to Apps Script.
 /* global PropertiesService, UrlFetchApp, Utilities, HoyoLabI18n, ScriptApp */
+// Account entries accept cookie strings or { cookie, character: { uid, region } }; see README.
 const config = {
 	language: "en-us", // Software and HoYoLAB language
 	enableCodeRedemption: false, // Set to true to enable automatic code redemption
@@ -186,6 +187,26 @@ function isAuthenticationError (data) {
 		|| /(?:please\s+)?log\s*in|login/i.test(String(data.message ?? ""));
 }
 
+const CHARACTER_GAME_BIZ = { genshin: "hk4e_global", starrail: "hkrpg_global", zenless: "nap_global" };
+
+function normalizeScriptAccount (entry, gameName) {
+	const account = typeof entry === "string" ? { cookie: entry } : entry;
+	if (!account || typeof account !== "object" || Array.isArray(account)
+		|| typeof account.cookie !== "string" || account.cookie.trim().length === 0) {
+		throw new Error(t("Invalid Apps Script account. Provide a cookie string or an object with a non-empty cookie."));
+	}
+	const character = account.character;
+	if (character === undefined || character === null) {
+		return { cookie: account.cookie };
+	}
+	if (!CHARACTER_GAME_BIZ[gameName] || typeof character !== "object" || Array.isArray(character)
+		|| typeof character.uid !== "string" || !/^[1-9]\d*$/.test(character.uid)
+		|| typeof character.region !== "string" || !/^[a-z][a-z0-9_]*$/.test(character.region)) {
+		throw new Error(t("Invalid character selection. Configure both character.uid and character.region for a supported game."));
+	}
+	return { cookie: account.cookie, character: { uid: character.uid, region: character.region } };
+}
+
 function getAccountId (cookie) {
 	return cookie.match(/(?:^|;\s*)ltuid(?:_v2)?=([^;]+)/)?.[1];
 }
@@ -196,7 +217,7 @@ function saveAccountDetails (game, cookie, details) {
 		return;
 	}
 	const key = `${game.name}_${accountId}_account_details`;
-	const value = JSON.stringify({ uid: details.uid, nickname: details.nickname, region: details.region });
+	const value = JSON.stringify({ uid: details.uid, nickname: details.nickname, region: details.region, ...(details.server && { server: details.server }) });
 	const properties = PropertiesService.getScriptProperties();
 	if (properties.getProperty(key) !== value) {
 		properties.setProperty(key, value);
@@ -267,7 +288,7 @@ class Game {
 		this.name = name;
 		this.fullName = DEFAULT_CONSTANTS[name].game; // Get full name from constants
 		this.config = { ...DEFAULT_CONSTANTS[name], ...config.config };
-		this.data = config.data || [];
+		this.data = (config.data || []).map(entry => normalizeScriptAccount(entry, name));
 		this.redemptionAccounts = [];
 
 		if (this.data.length === 0) {
@@ -284,10 +305,10 @@ class Game {
 		}
 
 		const success = [];
-		for (const cookie of accounts) {
+		for (const { cookie, character } of accounts) {
 			try {
 				const ltuid = cookie.match(/ltuid(?:|_v2)=([^;]+)/)[1];
-				const accountDetails = await this.getAccountDetails(cookie, ltuid);
+				const accountDetails = await this.getAccountDetails(cookie, ltuid, character);
 				if (!accountDetails) {
 					continue;
 				}
@@ -363,7 +384,7 @@ class Game {
 		return success;
 	}
 
-	async getAccountDetails (cookieData, ltuid) {
+	async getAccountDetails (cookieData, ltuid, character) {
 		try {
 			const headers = this.getRequestHeaders(cookieData, this.name === "zenless");
 			headers["x-rpc-app_version"] = this.name === "zenless" ? HTTP_APP_VERSION : "1.5.0";
@@ -396,7 +417,8 @@ class Game {
 				throw new Error(t `Failed to login to ${this.fullName} account: ${JSON.stringify(data)}`);
 			}
 
-			const accountData = data.data.list.find(account => account.game_id === this.config.gameId);
+			const card = data.data.list.find(account => account.game_id === this.config.gameId);
+			const accountData = character ? await this.getSelectedCharacter(cookieData, character) : card;
 			if (!accountData) {
 				throw new Error(t `No ${this.fullName} account found for ltuid: ${ltuid}`);
 			}
@@ -405,7 +427,8 @@ class Game {
 				uid: accountData.game_role_id,
 				nickname: accountData.nickname,
 				rank: accountData.level,
-				region: this.fixRegion(accountData.region)
+				region: this.fixRegion(accountData.region),
+				...(character && { server: accountData.region })
 			};
 			saveAccountDetails(this, cookieData, details);
 			return details;
@@ -414,6 +437,36 @@ class Game {
 			console.error(`${this.fullName}:login`, t `Error: ${e.message}`);
 			throw e; // Re-throw to be handled by the caller
 		}
+	}
+
+	async getSelectedCharacter (cookieData, selection) {
+		const { character } = normalizeScriptAccount({ cookie: cookieData, character: selection }, this.name);
+		let response;
+		let data;
+		try {
+			response = await UrlFetchApp.fetch(`https://api-account-os.hoyolab.com/binding/api/getUserGameRolesByLtoken?${encodeQuery({
+				game_biz: CHARACTER_GAME_BIZ[this.name], region: character.region
+			})}`, { method: "GET", muteHttpExceptions: true, headers: this.getRequestHeaders(cookieData) });
+			data = JSON.parse(response.getContentText());
+		}
+		catch {
+			// Transport errors can include authenticated request options.
+			throw new Error(t("Could not verify the selected character. Check the account cookie and try again."));
+		}
+		if (data && isAuthenticationError(data)) {
+			updateAuthenticationAlert(this, cookieData, "character selection", true);
+		}
+		if (response.getResponseCode() !== 200 || data?.retcode !== 0 || !Array.isArray(data?.data?.list)) {
+			throw new Error(t("Could not verify the selected character. Check the account cookie and try again."));
+		}
+		const matches = data.data.list.filter(role => role?.game_biz === CHARACTER_GAME_BIZ[this.name]
+			&& String(role.game_uid) === character.uid && role.region === character.region);
+		if (matches.length !== 1 || typeof matches[0].nickname !== "string" || !matches[0].nickname.trim()) {
+			throw new Error(t("The selected character was not found for this account and server."));
+		}
+		updateAuthenticationAlert(this, cookieData, "character selection", false);
+		const role = matches[0];
+		return { game_role_id: character.uid, region: character.region, nickname: role.nickname, level: role.level };
 	}
 
 	async sign (cookieData) {
@@ -747,7 +800,7 @@ class Game {
 
 	getRedemptionRequest (account, code) {
 		const lang = getApiLanguage().split("-")[0];
-		const region = this.mapToInternalRegion(account.region);
+		const region = account.server || this.mapToInternalRegion(account.region);
 		const origin = {
 			genshin: "https://genshin.hoyoverse.com",
 			starrail: "https://hsr.hoyoverse.com",
@@ -829,8 +882,13 @@ class Game {
 		return REDEMPTION_LINKS[this.name] || null;
 	}
 
+	getStorageRegion (account) {
+		// Preserve existing keys for known display regions; keep new server codes distinct.
+		return account.region === "Unknown" && account.server ? account.server : account.region;
+	}
+
 	getPausedCodesKey (account) {
-		return `${this.name}_${account.region}_${account.uid}_paused_codes`;
+		return `${this.name}_${this.getStorageRegion(account)}_${account.uid}_paused_codes`;
 	}
 
 	takeUnnotifiedPausedCodes (account, codes) {
@@ -848,14 +906,14 @@ class Game {
 	}
 
 	getRedeemedCodes (account) {
-		const redeemedCodes = PropertiesService.getScriptProperties().getProperty(`${this.name}_${account.region}_${account.uid}_redeemed_codes`);
+		const redeemedCodes = PropertiesService.getScriptProperties().getProperty(`${this.name}_${this.getStorageRegion(account)}_${account.uid}_redeemed_codes`);
 		return redeemedCodes ? JSON.parse(redeemedCodes) : [];
 	}
 
 	saveRedeemedCode (code, account) {
 		const redeemedCodes = this.getRedeemedCodes(account);
 		redeemedCodes.push(code);
-		PropertiesService.getScriptProperties().setProperty(`${this.name}_${account.region}_${account.uid}_redeemed_codes`, JSON.stringify(redeemedCodes));
+		PropertiesService.getScriptProperties().setProperty(`${this.name}_${this.getStorageRegion(account)}_${account.uid}_redeemed_codes`, JSON.stringify(redeemedCodes));
 	}
 
 	delay (ms) {
@@ -1195,7 +1253,7 @@ async function keepAliveCookies () {
 			continue;
 		}
 		const game = new Game(gameName, config[gameName]);
-		for (const cookie of new Set(accounts)) {
+		for (const cookie of new Set(game.data.map(account => account.cookie))) {
 			const result = await game.getSignInfo(cookie);
 			if (result.success) {
 				updateAuthenticationAlert(game, cookie, "check-in", false);
@@ -1253,7 +1311,7 @@ function manuallyRedeemCodes (gameName, forceRedeem = false) {
 	}
 
 	const game = new Game(gameName, config[gameName]);
-	const accounts = config[gameName].data;
+	const accounts = game.data;
 
 	if (accounts.length === 0) {
 		console.warn(t `No ${gameName} accounts provided. Cannot redeem codes.`);
@@ -1261,22 +1319,16 @@ function manuallyRedeemCodes (gameName, forceRedeem = false) {
 	}
 
 	const embeds = [];
-	const redeemForAccount = async (cookieData) => {
+	const redeemForAccount = async ({ cookie: cookieData, character }) => {
 		try {
 			const ltuid = cookieData.match(/ltuid(?:|_v2)=([^;]+)/)[1];
-			const accountDetails = await game.getAccountDetails(cookieData, ltuid);
+			const accountDetails = await game.getAccountDetails(cookieData, ltuid, character);
 
 			if (!accountDetails) {
 				return { success: false, message: t `Failed to get account details for ${gameName}` };
 			}
 
-			const account = {
-				uid: accountDetails.uid,
-				nickname: accountDetails.nickname,
-				rank: accountDetails.rank,
-				region: accountDetails.region,
-				cookie: cookieData
-			};
+			const account = { ...accountDetails, cookie: cookieData };
 
 			console.log(t `Redeeming codes for ${gameName} account: ${account.nickname} (${account.uid})`);
 
