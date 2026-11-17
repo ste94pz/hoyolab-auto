@@ -29,8 +29,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 				fields: [
 					{
 						name: t `Current Stamina:`,
-						value: `${currentStamina}/${stamina.maxStamina}`
-						+ t `\nFull in:\n${app.Utils.formatTime(stamina.recoveryTime)}`,
+						value: `${currentStamina}/${stamina.maxStamina}${t `\nFull in:\n${app.Utils.formatTime(stamina.recoveryTime)}`}`,
 						inline: true
 					}
 				],
@@ -65,8 +64,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 					},
 					{
 						name: t("Realm Currency"),
-						value: `${realm.currentCoin}/${realm.maxCoin}`
-						+ t `\nCapped in: ${app.Utils.formatTime(realm.recoveryTime)}`,
+						value: `${realm.currentCoin}/${realm.maxCoin}${t `\nCapped in: ${app.Utils.formatTime(realm.recoveryTime)}`}`,
 						inline: true
 					},
 					{

@@ -1,3 +1,6 @@
+/* exported resetAllRedeemedCodes, viewAllRedeemedCodes, setTimeout, keepAliveCookies,
+ setupCookieKeepAlive, checkInAllGames, redeemGenshinCodes, redeemStarRailCodes, redeemZenlessCodes */
+// Global entry points and compatibility helpers are available to Apps Script.
 /* global PropertiesService, UrlFetchApp, Utilities, HoyoLabI18n, ScriptApp */
 const config = {
 	language: "en-us", // Software and HoYoLAB language

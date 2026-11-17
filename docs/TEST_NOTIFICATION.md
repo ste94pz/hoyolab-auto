@@ -1,10 +1,14 @@
 # Test Notification Feature
 
-The HoyoLab Auto application now includes a **Test Notification** feature that helps verify platform functionality when the application starts.
+The HoyoLab Auto application now includes a **Test Notification** feature that
+helps verify platform functionality when the application starts.
 
 ## Overview
 
-When the application initializes, it will automatically send test notifications to all configured platforms (Discord webhooks, Telegram bots, Gotify, etc.) to confirm they are working properly. This helps you quickly identify any configuration issues with your notification platforms.
+When the application initializes, it will automatically send test notifications
+to all configured platforms (Discord webhooks, Telegram bots, Gotify, etc.) to
+confirm they are working properly. This helps you quickly identify any
+configuration issues with your notification platforms.
 
 ## Configuration
 
@@ -22,7 +26,8 @@ The test notification feature can be controlled through the `config.json5` file:
 
 ### Options
 
-- `enabled` (boolean): Controls whether test notifications are sent on application startup
+- `enabled` (boolean): Controls whether test notifications are sent on
+  application startup
   - `true` (default): Send test notifications on startup
   - `false`: Skip test notifications
 
@@ -42,14 +47,17 @@ The test notification feature can be controlled through the `config.json5` file:
 
 ### Discord Bots
 
-- Connection status logged (Discord bots require channel access to send messages)
+- Connection status logged (Discord bots require channel access to send
+  messages)
 
 ### Gotify
 
 - Message with application status, local time, and platform information
 - Uses the platform's configured priority (5 by default)
-- Set `testNotification.enabled` to `true` and start the application to verify delivery
-- See the [Gotify setup guide](../setup/GOTIFY.md) for server and token configuration
+- Set `testNotification.enabled` to `true` and start the application to verify
+  delivery
+- See the [Gotify setup guide](../setup/GOTIFY.md) for server and token
+  configuration
 
 ## Manual Testing
 
@@ -88,12 +96,15 @@ $test-notification Custom message here
 
 4. **Gotify Issues**
    - Use an application token created in the Gotify web UI
-   - Check that the server URL is reachable from the machine or container running HoyoLab Auto
-   - Include any reverse proxy path in the URL, such as `https://example.com/gotify`
+   - Check that the server URL is reachable from the machine or container
+     running HoyoLab Auto
+   - Include any reverse proxy path in the URL, such as
+     `https://example.com/gotify`
 
 ### Logs
 
-Test notification activities are logged with the `TestNotification` category. Check your logs for:
+Test notification activities are logged with the `TestNotification` category.
+Check your logs for:
 
 - Success messages when notifications are sent
 - Error messages if notifications fail
@@ -110,9 +121,12 @@ Test notification activities are logged with the `TestNotification` category. Ch
 
 ## Benefits
 
-1. **Immediate Feedback**: Know right away if your notification platforms are working
+1. **Immediate Feedback**: Know right away if your notification platforms are
+   working
 2. **Configuration Validation**: Catch configuration errors early
-3. **Peace of Mind**: Confirmation that you'll receive important game notifications
+3. **Peace of Mind**: Confirmation that you'll receive important game
+   notifications
 4. **Quick Testing**: Manual command for testing changes or troubleshooting
 
-The test notification feature ensures that your HoyoLab Auto setup is fully functional and ready to keep you informed about your HoYoverse games!
+The test notification feature ensures that your HoyoLab Auto setup is fully
+functional and ready to keep you informed about your HoYoverse games!

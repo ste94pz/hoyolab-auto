@@ -1,10 +1,12 @@
 # HoyoLab Check-In Helper
 
 ## Contents
+
 - [Pre-requisites](#pre-requisites)
 - [Setting up](#setting-up)
 
 ## Pre-requisites
+
 - Google Account
 
 ## Setting up
@@ -12,30 +14,46 @@
 ### 1. Setup in Google Apps Script
 
 1. **Check-In URLs:**
-   - [Honkai Impact](https://act.hoyolab.com/bbs/event/signin-bh3/index.html?act_id=e202110291205111)
-   - [Genshin Impact](https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481)
-   - [Honkai: Star Rail](https://act.hoyolab.com/bbs/event/signin/hkrpg/index.html?act_id=e202303301540311)
-   - [Zenless Zone Zero](https://act.hoyolab.com/bbs/event/signin/zzz/e202406031448091.html?act_id=e202406031448091)
+   - [Honkai
+     Impact](https://act.hoyolab.com/bbs/event/signin-bh3/index.html?act_id=e202110291205111)
+   - [Genshin
+     Impact](https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481)
+   - [Honkai: Star
+     Rail](https://act.hoyolab.com/bbs/event/signin/hkrpg/index.html?act_id=e202303301540311)
+   - [Zenless Zone
+     Zero](https://act.hoyolab.com/bbs/event/signin/zzz/e202406031448091.html?act_id=e202406031448091)
 
 2. **Getting the Cookie:**
-   - Follow the [HoyoLab Cookie Extraction Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd) to obtain the cookie required for both daily check-ins and code redemption.
-   - Use an incognito/private browsing window as recommended in the guide to ensure you copy the correct account's cookie.
+   - Follow the [HoyoLab Cookie Extraction
+     Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd)
+     to obtain the cookie required for both daily check-ins and code redemption.
+   - Use an incognito/private browsing window as recommended in the guide to
+     ensure you copy the correct account's cookie.
 
 ### 2. Setup in Google Apps Script
 
 1. **Create a New Project:**
-   - Go to [https://script.google.com/](https://script.google.com/) (you'll need a Google account).
+   - Go to [https://script.google.com/](https://script.google.com/) (you'll need
+     a Google account).
    - Create a new project by clicking "+ New Project".
 
 2. **Paste the Code:**
-   - For localized messages, add two script files to the same project: paste [the desired language catalog](../../localization/README.md) into a new `.gs` file and [the shared formatter](../../localization/index.js) into `Localization.gs`.
-   - Replace any existing code in the script editor with the provided Apps Script code. It should look like this:
+   - For localized messages, add two script files to the same project: paste
+     [the desired language catalog](../../localization/README.md) into a new
+     `.gs` file and [the shared formatter](../../localization/index.js) into
+     `Localization.gs`.
+   - Replace any existing code in the script editor with the provided Apps
+     Script code. It should look like this:
 
-     ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/4a0a5a30-c990-41f2-802e-1ba6f45c0c43)
+   ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/4a0a5a30-c990-41f2-802e-1ba6f45c0c43)
 
 3. **Configuration:**
-   - Set `config.language` to a locale matching the catalog, such as `"it-it"` for Italian, or leave `"en-us"` for English. Missing catalogs and messages fall back to English without changing the API locale. HoYoLAB requests use the full configured locale; code redemption uses its primary language.
-   - **Paste your `cookie`:** In the config object, add the following (replace placeholders with your actual data):
+   - Set `config.language` to a locale matching the catalog, such as `"it-it"`
+     for Italian, or leave `"en-us"` for English. Missing catalogs and messages
+     fall back to English without changing the API locale. HoYoLAB requests use
+     the full configured locale; code redemption uses its primary language.
+   - **Paste your `cookie`:** In the config object, add the following (replace
+     placeholders with your actual data):
 
      ```javascript
      const config = {
@@ -63,13 +81,17 @@
      };
      ```
 
-   - **Discord notifications (optional):** Set `DISCORD_WEBHOOK` to your webhook URL to get a Discord message for every check-in.
+   - **Discord notifications (optional):** Set `DISCORD_WEBHOOK` to your webhook
+     URL to get a Discord message for every check-in.
 
      ```javascript
      const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/...";
      ```
 
-   - **Automatic code redemption (optional):** Set `enableCodeRedemption` to `true` to redeem new codes on each scheduled run, including when the account has already checked in that day. Not supported for Honkai Impact 3rd.
+   - **Automatic code redemption (optional):** Set `enableCodeRedemption` to
+     `true` to redeem new codes on each scheduled run, including when the
+     account has already checked in that day. Not supported for Honkai Impact
+     3rd.
 
      ```javascript
      const config = {
@@ -79,54 +101,97 @@
      };
      ```
 
-     When `DISCORD_WEBHOOK` is set, one summary message is sent per account listing the codes that were redeemed and the rewards they granted. Nothing is sent when there are no new codes. Turn on `notifyOnRedeemFailure` if you also want to hear about codes that failed - this includes a link to redeem them manually. Codes that fail for a temporary reason (expired cookie, redemption cooldown, network errors) are retried on the next run; expired, invalid, and already-used codes are not.
+     When `DISCORD_WEBHOOK` is set, one summary message is sent per account
+     listing the codes that were redeemed and the rewards they granted. Nothing
+     is sent when there are no new codes. Turn on `notifyOnRedeemFailure` if you
+     also want to hear about codes that failed - this includes a link to redeem
+     them manually. Codes that fail for a temporary reason (expired cookie,
+     redemption cooldown, network errors) are retried on the next run; expired,
+     invalid, and already-used codes are not.
 
-     Authentication failures send a separate Discord alert even when `notifyOnRedeemFailure` is `false`. Check-in and redemption failures are deduplicated per game and HoYoLAB account across runs. A failed delivery is retried; another alert is allowed after the cookie changes or all reported authentication failures recover. Alerts show the HoYoLAB ID, plus the game UID, nickname, and region once the account has been looked up successfully at least once. After a redemption login error, remaining codes for that account wait until the next run. Other accounts continue normally.
+     Authentication failures send a separate Discord alert even when
+     `notifyOnRedeemFailure` is `false`. Check-in and redemption failures are
+     deduplicated per game and HoYoLAB account across runs. A failed delivery is
+     retried; another alert is allowed after the cookie changes or all reported
+     authentication failures recover. Alerts show the HoYoLAB ID, plus the game
+     UID, nickname, and region once the account has been looked up successfully
+     at least once. After a redemption login error, remaining codes for that
+     account wait until the next run. Other accounts continue normally.
 
-     Check-in and redemption use different tokens, so successful check-in does not prove that redemption credentials are valid. Replace the affected account's cookie when alerted. This Apps Script does not refresh cookies using `stoken`.
+     Check-in and redemption use different tokens, so successful check-in does
+     not prove that redemption credentials are valid. Replace the affected
+     account's cookie when alerted. This Apps Script does not refresh cookies
+     using `stoken`.
 
-     HSR and ZZZ browser redemption also require `_MHYUUID` in the configured cookie. If it is missing, acquire a new cookie; redemption makes no HTTP request and the code remains eligible for a later attempt. Genshin redemption uses the browser gift GET endpoint; HSR and ZZZ use JSON POST risk endpoints.
+     HSR and ZZZ browser redemption also require `_MHYUUID` in the configured
+     cookie. If it is missing, acquire a new cookie; redemption makes no HTTP
+     request and the code remains eligible for a later attempt. Genshin
+     redemption uses the browser gift GET endpoint; HSR and ZZZ use JSON POST
+     risk endpoints.
 
-     Redeemed codes are now tracked per game account. When updating from a version with shared code history, current codes may be attempted once again for each account because the old history cannot identify which account redeemed them.
+     Redeemed codes are now tracked per game account. When updating from a
+     version with shared code history, current codes may be attempted once again
+     for each account because the old history cannot identify which account
+     redeemed them.
 
    - **Save the Project:** Click on the floppy disk icon to save your project.
 
-     ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/7c7b36cf-937a-4003-b86e-9f5f74365a68)
+   ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/7c7b36cf-937a-4003-b86e-9f5f74365a68)
 
 ### 3. Run the Script
 
 1. **Before Running It:**
    - Make sure to select `checkInAllGames` or the script will not run.
 
-     ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/c5caed6d-773e-46d6-a1b5-e6d0c8226c98)
+   ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/c5caed6d-773e-46d6-a1b5-e6d0c8226c98)
 
 2. **Trigger the Function (Recommended):**
-   - In the Apps Script editor, click on the "Triggers" icon (clock symbol) in the left sidebar.
+   - In the Apps Script editor, click on the "Triggers" icon (clock symbol) in
+     the left sidebar.
    - Click "+ Add Trigger" and configure:
      - **Function to run:** `checkInAllGames`
      - **Event source:** `Time-driven`
      - **Type of time-based trigger:** `Day timer`
      - **Select time:** Set your desired time for daily check-ins.
-   - Save the trigger. This will automatically run your script every day at the specified time.
+   - Save the trigger. This will automatically run your script every day at the
+     specified time.
 
 3. **Final Step:**
-   - Run the script once manually by clicking the play button in the Apps Script editor to authorize the script.
+   - Run the script once manually by clicking the play button in the Apps Script
+     editor to authorize the script.
 
-     ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/8378f2b9-2532-4e37-8cf7-394bee0f41c3)
+   ![image](https://github.com/torikushiii/hoyolab-auto/assets/21153445/8378f2b9-2532-4e37-8cf7-394bee0f41c3)
 
 ### Optional six-hour cookie keep-alive
 
-Run `setupCookieKeepAlive` once from the Apps Script editor and authorize it if prompted. This creates a separate trigger that runs `keepAliveCookies` every six hours. Running setup again replaces your existing keep-alive trigger. Your daily check-in trigger stays as configured.
+Run `setupCookieKeepAlive` once from the Apps Script editor and authorize it if
+prompted. This creates a separate trigger that runs `keepAliveCookies` every six
+hours. Running setup again replaces your existing keep-alive trigger. Your daily
+check-in trigger stays as configured.
 
-Each run reads the check-in status for each configured game/account without checking in or redeeming codes. Successful requests send no Discord messages; authentication failures use the existing deduplicated alerts. A successful keep-alive does not clear a code-redemption authentication failure.
+Each run reads the check-in status for each configured game/account without
+checking in or redeeming codes. Successful requests send no Discord messages;
+authentication failures use the existing deduplicated alerts. A successful
+keep-alive does not clear a code-redemption authentication failure.
 
-This is experimental: periodic requests have not been verified to extend cookie lifetime or prevent CAPTCHA. It does not refresh tokens using `stoken`, save replacement cookies, or restore expired sessions. Expired cookies still need replacing.
+This is experimental: periodic requests have not been verified to extend cookie
+lifetime or prevent CAPTCHA. It does not refresh tokens using `stoken`, save
+replacement cookies, or restore expired sessions. Expired cookies still need
+replacing.
 
-To stop it, run `removeCookieKeepAlive` from the editor. Trigger setup and removal apply to triggers created by your Google account.
+To stop it, run `removeCookieKeepAlive` from the editor. Trigger setup and
+removal apply to triggers created by your Google account.
 
 ### Important Notes
 
-- Account discovery uses game-specific Game Record APIs; HSR and Honkai Impact 3rd discovery use basic desktop DS. Check-in uses the desktop Genshin or per-game WebView contract without DS and confirms the post-claim status before reporting success.
-- Request construction, cookie requirements and result handling are tested offline. The actual Google Apps Script transport and backend acceptance have not been verified live.
-- **Authorization:** The first time you run the script, it will ask for authorization to access your Google account.
-- **Logs:** View the execution logs by clicking on the "Executions" icon (play button symbol) in the Apps Script sidebar.
+- Account discovery uses game-specific Game Record APIs; HSR and Honkai Impact
+  3rd discovery use basic desktop DS. Check-in uses the desktop Genshin or
+  per-game WebView contract without DS and confirms the post-claim status before
+  reporting success.
+- Request construction, cookie requirements and result handling are tested
+  offline. The actual Google Apps Script transport and backend acceptance have
+  not been verified live.
+- **Authorization:** The first time you run the script, it will ask for
+  authorization to access your Google account.
+- **Logs:** View the execution logs by clicking on the "Executions" icon (play
+  button symbol) in the Apps Script sidebar.

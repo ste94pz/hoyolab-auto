@@ -186,10 +186,7 @@ module.exports = class Telegram extends require("./template.js") {
 
 					await this.send(t("Please enter the code you want to redeem:"));
 
-					const code = await this.waitForUserInput(
-						messageData.callback_query.from.id,
-						messageData.callback_query
-					);
+					const code = await this.waitForUserInput(messageData.callback_query.from.id);
 
 					if (code) {
 						if (game === "zzz") {
@@ -239,8 +236,8 @@ module.exports = class Telegram extends require("./template.js") {
 		this.messageListeners = this.messageListeners.filter((l) => l !== listener);
 	}
 
-	async waitForUserInput (userId, callbackQuery) {
-		return new Promise((resolve, reject) => {
+	async waitForUserInput (userId) {
+		return new Promise((resolve) => {
 			const listener = async (msgData) => {
 				if (msgData.message && msgData.message.from.id === userId) {
 					const code = msgData.message.text;

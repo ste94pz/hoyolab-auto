@@ -16,18 +16,19 @@ cookie and endpoint-specific headers explicitly.
 | `HoYoLabPassport` | Dedicated Passport SDK metadata; full configured language |
 
 `language.js` preserves the configured preference with fallback `en-us`.
-`getLanguageOnly()` extracts the primary language for browser redemption. Neither
-helper changes configuration or assumes backend support for arbitrary locales.
-Software localization fallback never changes the request locale.
+`getLanguageOnly()` extracts the primary language for browser redemption.
+Neither helper changes configuration or assumes backend support for arbitrary
+locales. Software localization fallback never changes the request locale.
 
-Mimo HSR/ZZZ index and task operations use AppWebView; shop, purchase history and
-lottery use DesktopWeb. POST operations send the full locale in both query and
-JSON. No DS, Game Record RPC, invented device identity or age state is inherited.
-The existing task whitelist, lottery opt-in, shop policies, reserves, retry delays
-and redemption preferences remain in effect. Qiuqiu uses separate underscore
-routes and omits locale from POST JSON. Its two internal lottery methods retain
-local legacy defaults because their contract is unverified; supported cron and
-command flows do not activate Genshin lottery. The global `HoYoLab` and
+Mimo HSR/ZZZ index and task operations use AppWebView; shop, purchase history
+and lottery use DesktopWeb. POST operations send the full locale in both query
+and JSON. No DS, Game Record RPC, invented device identity or age state is
+inherited. The existing task whitelist, lottery opt-in, shop policies, reserves,
+retry delays and redemption preferences remain in effect. Qiuqiu uses separate
+underscore routes and omits locale from POST JSON. Its two internal lottery
+methods retain local legacy defaults because their contract is unverified;
+supported cron and command flows do not activate Genshin lottery. The global
+`HoYoLab` and
 `HoyoClient` registrations have been removed.
 
 Hilichurl retains upstream automatic completion for types 1/2/4/10/101/102.
@@ -41,29 +42,30 @@ Passport refresh uses the existing SG fallback, `stoken`/`mid` cookie and token
 lifecycle. Its dedicated signer hashes the exact serialized JSON body with an
 empty signed query. SDK/app constants and the configured language are sent;
 Android device/fingerprint, regional routing state, age and challenge metadata
-are omitted because the application has no legitimate values for them.
-Passport signing is separate from desktop basic DS, which
-remains explicitly used by HSR/HI3 Game Record.
+are omitted because the application has no legitimate values for them. Passport
+signing is separate from desktop basic DS, which remains explicitly used by
+HSR/HI3 Game Record.
 
-Genshin/HSR Diary read the nested `month_data` summaries without DS. HSR checks `data_month`
+Genshin/HSR Diary read the nested `month_data` summaries without DS. HSR checks
+`data_month`
 against the requested month. HSR/ZZZ browser redemption uses POST risk endpoints
-and requires the configured cookie's `_MHYUUID`, preserved across cookie refresh.
-Tears of Themis automatic and command redemption use DesktopWeb GET requests: cookie-token
-role discovery with the full RPC locale, followed by the gift endpoint with
-the short locale (Chinese variants preserved) in query and RPC header. It sends
-the discovered game UID without DS or invented device fields. Login loads that
-UID, nickname and region for account selectors and notifications; redemption
-checks the selected character again. Internal cache keys retain their existing
-HoYoLAB account identity so pending/completed codes survive this change. Failed
-login discovery leaves check-in available and omits the account from redemption
-selectors; restore the linked account/cookie and restart to reload it.
-Check-in descriptors keep per-game query/body differences; Genshin, HSR, ZZZ and
-HI3 verify post-claim status.
+and requires the configured cookie's `_MHYUUID`, preserved across cookie
+refresh. Tears of Themis automatic and command redemption use DesktopWeb GET
+requests: cookie-token role discovery with the full RPC locale, followed by the
+gift endpoint with the short locale (Chinese variants preserved) in query and
+RPC header. It sends the discovered game UID without DS or invented device
+fields. Login loads that UID, nickname and region for account selectors and
+notifications; redemption checks the selected character again. Internal cache
+keys retain their existing HoYoLAB account identity so pending/completed codes
+survive this change. Failed login discovery leaves check-in available and omits
+the account from redemption selectors; restore the linked account/cookie and
+restart to reload it. Check-in descriptors keep per-game query/body differences;
+Genshin, HSR, ZZZ and HI3 verify post-claim status.
 
-The standalone [Google Apps Script](../../services/google-script/README.md)
-uses the same per-game discovery, check-in and browser redemption contracts
-through `UrlFetchApp`. Its own HTTP tests stub Google services; they do not
-validate the deployed Google transport or backend acceptance.
+The standalone [Google Apps Script](../../services/google-script/README.md) uses
+the same per-game discovery, check-in and browser redemption contracts through
+`UrlFetchApp`. Its own HTTP tests stub Google services; they do not validate the
+deployed Google transport or backend acceptance.
 
 Offline tests exercise effective URLs, serialized bodies, headers, signing,
 locale/setup compatibility and synthetic response lifecycles without account
@@ -71,5 +73,6 @@ credentials or network access. Official-client observations support the selected
 request contracts, including HSR point-cost exchange and downstream redemption.
 They do not establish live acceptance of every bot operation. ZZZ Mimo
 shop/lottery success, lottery prizes containing codes, the precise ToT WebView
-claim subset, and Passport's minimum backend metadata remain unverified. Synthetic
-fixtures for these cases are regression coverage, not successful API calls.
+claim subset, and Passport's minimum backend metadata remain unverified.
+Synthetic fixtures for these cases are regression coverage, not successful API
+calls.

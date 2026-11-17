@@ -19,8 +19,7 @@ const createEmbed = (result) => {
 			name: t("🎯 Tasks Claimed"),
 			value: result.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024) || t("None"),
 			inline: false
-		});
-		fields.push({
+		}, {
 			name: t("💰 Points Earned"),
 			value: t `+${totalPoints} pts`,
 			inline: true

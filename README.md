@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 MD013 -->
 <h1 align="center">
     <img width="120" height="120" src="https://i.ibb.co/nRqTkXv/image.png" alt="HoyoLab Auto Logo"><br>
     HoyoLab Auto
@@ -8,12 +9,16 @@
    <img src="https://img.shields.io/github/license/torikushiii/hoyolab-auto" alt="License badge">
    <img src="https://img.shields.io/github/stars/torikushiii/hoyolab-auto" alt="GitHub stars badge">
 </p>
+<!-- markdownlint-enable MD033 MD013 -->
 
 # HoyoLab Auto
 
-A multi-purpose tool for any supported Hoyoverse games. This tool is designed to assist with daily check-ins, stamina checks, expedition checks, automatic code-redemption, and more.
+A multi-purpose tool for any supported Hoyoverse games. This tool is designed to
+assist with daily check-ins, stamina checks, expedition checks, automatic
+code-redemption, and more.
 
 ## Table of Contents
+
 - [HoyoLab Auto](#hoyolab-auto)
   - [Table of Contents](#table-of-contents)
   - [Google App Script](#google-app-script)
@@ -31,10 +36,14 @@ A multi-purpose tool for any supported Hoyoverse games. This tool is designed to
   - [Buy Me a Coffee](#buy-me-a-coffee)
 
 ## Google App Script
-If you don't have a server to run this script and simply just want to use it for checking in, you can use Google App Script.
-  - [Google App Script](./services/google-script/README.md)
+
+If you don't have a server to run this script and simply just want to use it for
+checking in, you can use Google App Script.
+
+- [Google App Script](./services/google-script/README.md)
 
 ## Supported Games
+
 - [x] Honkai Impact 3rd (Daily Check-In only)
 - [x] Tears of Themis
 - [x] Genshin Impact
@@ -42,144 +51,209 @@ If you don't have a server to run this script and simply just want to use it for
 - [x] Zenless Zone Zero
 
 ## Features
-Daily reminders use game server time by default. Set `crons.dailiesReminderTimeZone`
-to an IANA timezone such as `America/New_York` to use local time with daylight-saving changes.
+
+Daily reminders use game server time by default. Set
+`crons.dailiesReminderTimeZone`
+to an IANA timezone such as `America/New_York` to use local time with
+daylight-saving changes.
 
 - **Honkai Impact 3rd**:
   - **Daily check-in**: Runs every midnight local time.
 
 - **Tears of Themis**:
   - **Daily check-in**: Runs every midnight local time.
-  - **Code Redeems**: Automatically redeem new public codes when the account's `redeemCode` is `true` (default: `false`), or submit a code with `/redeem` in Telegram or Discord. The account selector shows the Global server, ToT character UID and nickname loaded at login. In Telegram, select the ToT account and enter the code. Requires a linked game character and redemption cookies. Uses the [official gift website](https://tot.hoyoverse.com/gift/); no HoYoLAB app redemption is needed.
+  - **Code Redeems**: Automatically redeem new public codes when the account's
+    `redeemCode` is `true` (default: `false`), or submit a code with `/redeem`
+    in Telegram or Discord. The account selector shows the Global server, ToT
+    character UID and nickname loaded at login. In Telegram, select the ToT
+    account and enter the code. Requires a linked game character and redemption
+    cookies. Uses the [official gift website](https://tot.hoyoverse.com/gift/);
+    no HoYoLAB app redemption is needed.
 
 - **Genshin Impact**:
   - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies at the configured time (21:00 game server time by default).
-  - **Weeklies**: Reminds you to do your weekly bosses/discounted resin if you haven't done them at 09:00 (local time).
-  - **Stamina check**: Reminds you to spend your resin if you're at your set threshold or capped.
-  - **Expedition check**: Check your expeditions and sends a notification if they're done.
+  - **Dailies**: Reminds you to do your dailies at the configured time (21:00
+    game server time by default).
+  - **Weeklies**: Reminds you to do your weekly bosses/discounted resin if you
+    haven't done them at 09:00 (local time).
+  - **Stamina check**: Reminds you to spend your resin if you're at your set
+    threshold or capped.
+  - **Expedition check**: Check your expeditions and sends a notification if
+    they're done.
   - **Realm currency**: Sends a notification if your realm currency is capped.
   - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Traveler's Diary**: Check current and previous monthly currency totals and official category breakdowns in your configured language. Results are cached for two hours. A percentage comparison is unavailable when the previous month has no Primogem income.
+  - **Traveler's Diary**: Check current and previous monthly currency totals and
+    official category breakdowns in your configured language. Results are cached
+    for two hours. A percentage comparison is unavailable when the previous
+    month has no Primogem income.
 - **Honkai: Star Rail**:
   - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies at the configured time (21:00 game server time by default).
-  - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
-  - **Expedition check**: Check your expeditions and sends a notification if they're done.
+  - **Dailies**: Reminds you to do your dailies at the configured time (21:00
+    game server time by default).
+  - **Stamina check**: Reminds you to spend your stamina if you're at your set
+    threshold or capped.
+  - **Expedition check**: Check your expeditions and sends a notification if
+    they're done.
   - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Trailblazer Monthly Calendar**: Check current and previous monthly Jade/Pass totals and official category breakdowns in your configured language. Results are cached for two hours. A percentage comparison is unavailable when the previous month has no Jade income.
-  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Stellar Jade.
+  - **Trailblazer Monthly Calendar**: Check current and previous monthly
+    Jade/Pass totals and official category breakdowns in your configured
+    language. Results are cached for two hours. A percentage comparison is
+    unavailable when the previous month has no Jade income.
+  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and
+    exchange for Stellar Jade.
 - **Zenless Zone Zero**:
   - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies at the configured time (21:00 game server time by default).
-  - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
-  - **Daily Lottery**: Notifies you at 21:00 game server time if you haven't claimed the daily lottery reward. Set `dailyLotteryCheck` to `false` on a ZZZ account to disable it.
+  - **Dailies**: Reminds you to do your dailies at the configured time (21:00
+    game server time by default).
+  - **Stamina check**: Reminds you to spend your stamina if you're at your set
+    threshold or capped.
+  - **Daily Lottery**: Notifies you at 21:00 game server time if you haven't
+    claimed the daily lottery reward. Set `dailyLotteryCheck` to `false` on a
+    ZZZ account to disable it.
   - **Shop Status**: Notifies you if the shop has finished selling videos.
   - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Polychrome.
+  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and
+    exchange for Polychrome.
 
-Weekly reminders only run for Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero.
+Weekly reminders only run for Genshin Impact, Honkai: Star Rail, and Zenless
+Zone Zero.
 
 ## Prerequisites
+
 - [Git](https://git-scm.com/downloads)
 - [Node.js](https://nodejs.org/en/)
 
 ## Installation
+
 1. Clone the repository.
 2. Run `npm install` to install the dependencies.
 3. You can configure your config using one of the following methods:
 
     1. **Using the Setup Script:**
       - For Windows, run the following npm script from the project root:
+
         ```bash
         npm run setup:windows
         ```
+
       - For Linux, use this command:
+
         ```bash
         npm run setup:linux
         ```
-      - These commands will automatically open your default web browser to help you configure your settings through a web-based interface.
 
-    2. **Manual Configuration:**
+      - These commands will automatically open your default web browser to help
+        you configure your settings through a web-based interface.
+
+    1. **Manual Configuration:**
       - Copy the `default.config.json5` file to create a `config.json5` file:
+
         ```bash
         cp default.config.json5 config.json5
         ```
-      - Open `config.json5` and update it with your application's configuration settings.
+
+      - Open `config.json5` and update it with your application's configuration
+        settings.
 
 4. Follow the instructions in the `default.config.json5` or `config.json5` file.
 5. Run the application:
+
    ```bash
    npm start
    ```
 
 ### Language
 
-The Node.js application defaults to `en-us`. Set the top-level `language` option in
+The Node.js application defaults to `en-us`. Set the top-level `language` option
+in
 `config.json5` to another lowercase HoYoLAB locale, for example:
 
 ```json5
 language: 'it-it',
 ```
 
-This sets the existing HoYoLAB language headers and locale fields used by diaries,
-Genshin code redemption, Mimo, and Hilichurl. Genshin daily check-in requests
-(`info`, `home`, and `sign`) also use this locale in their `lang` query parameter.
-The same option selects the software language for commands, notifications, logs,
-errors, and the setup generator. An exact regional catalog (such as `it-ch.js`)
-takes precedence over the generic language catalog (`it.js`). English and Italian
-are included; unsupported software locales and missing translations fall back to English without changing
-the configured API locale. For example, `language: 'ja-jp'` still requests Japanese
-from HoYoLAB while the software uses English. Restart the application after changing
-its language. Game names, command names, configuration keys, and API-provided text
+This sets the existing HoYoLAB language headers and locale fields used by
+diaries, Genshin code redemption, Mimo, and Hilichurl. Genshin daily check-in
+requests (`info`, `home`, and `sign`) also use this locale in their `lang` query
+parameter. The same option selects the software language for commands,
+notifications, logs, errors, and the setup generator. An exact regional catalog
+(such as `it-ch.js`) takes precedence over the generic language catalog
+(`it.js`). English and Italian are included; unsupported software locales and
+missing translations fall back to English without changing the configured API
+locale. For example, `language: 'ja-jp'` still requests Japanese from HoYoLAB
+while the software uses English. Restart the application after changing its
+language. Game names, command names, configuration keys, and API-provided text
 are not translated by the software.
 
 The setup generator switches language when this field changes or a configuration
 is imported, and preserves the locale when exporting. Startup errors before a
-configuration can be read remain in English. See [translation maintenance](localization/README.md)
-for adding or updating a language through one catalog file.
+configuration can be read remain in English. See [translation
+maintenance](localization/README.md) for adding or updating a language through
+one catalog file.
 
 Genshin daily check-in uses the desktop web event API and reports a new claim as
 successful only after a follow-up status request confirms today’s check-in.
 
 HSR, ZZZ, Honkai Impact 3rd, and Tears of Themis check-in use game-specific
-WebView requests without DS. The configured locale is sent in GET queries and
-in sign JSON for HSR/ZZZ/Themis, or the sign query for Honkai Impact 3rd.
+WebView requests without DS. The configured locale is sent in GET queries and in
+sign JSON for HSR/ZZZ/Themis, or the sign query for Honkai Impact 3rd.
 Successful official check-ins and post-sign states have been observed for HSR,
-ZZZ, and Honkai Impact 3rd; the application confirms their status after claiming.
-Tears of Themis has successful official-client observations; the precise
-headless WebView claim request remains unverified.
+ZZZ, and Honkai Impact 3rd; the application confirms their status after
+claiming. Tears of Themis has successful official-client observations; the
+precise headless WebView claim request remains unverified.
 
 Genshin account discovery and Realtime Notes use the current Game Record APIs.
-If Notes reports error `10102`, enable Realtime Notes in HoYoLAB's Genshin Impact
-Battle Chronicle settings. The application does not change your privacy settings.
+If Notes reports error `10102`, enable Realtime Notes in HoYoLAB's Genshin
+Impact Battle Chronicle settings. The application does not change your privacy
+settings.
 
-HSR account discovery and Realtime Notes, and Honkai Impact 3rd account discovery,
-use signed desktop Game Record APIs while preserving the configured language.
-Their request and result/cache contracts are tested offline; headless authentication
-with omitted browser metadata has not been verified live.
+HSR account discovery and Realtime Notes, and Honkai Impact 3rd account
+discovery, use signed desktop Game Record APIs while preserving the configured
+language. Their request and result/cache contracts are tested offline; headless
+authentication with omitted browser metadata has not been verified live.
 
 ZZZ account discovery and Realtime Notes use the current Game Record WebView
-APIs without DS, preserving the configured locale and existing Notes/cache output.
+APIs without DS, preserving the configured locale and existing Notes/cache
+output.
 
 Hilichurl Workshop automatically completes task types `1`, `2`, `4`, `10`,
 `101`, and `102`. Reading and video tasks (`101`/`102`) wait for the supplied
 `read_seconds` plus one second when positive, then use the desktop event API;
-other task operations use the event WebView API. Available rewards from completed
-tasks can still be collected regardless of type. Successful cosmetic exchanges
-may return no redemption code; successful official point-cost exchanges have
-also been observed. The timed headless flow is covered by offline tests; backend
-acceptance and the sufficiency of the waiting period remain unverified live.
+other task operations use the event WebView API. Available rewards from
+completed tasks can still be collected regardless of type. Successful cosmetic
+exchanges may return no redemption code; successful official point-cost
+exchanges have also been observed. The timed headless flow is covered by offline
+tests; backend acceptance and the sufficiency of the waiting period remain
+unverified live.
 
 ### Randomized scheduling
 
-Each job has one schedule under `crons`: choose `cron`, `interval`, or `daily-window`. Fixed cron schedules remain the default; existing string values such as `checkIn: '0 0 0 * * *'` are still supported. Omitted jobs keep their built-in schedules.
+Each job has one schedule under `crons`: choose `cron`, `interval`, or
+`daily-window`. Fixed cron schedules remain the default; existing string values
+such as `checkIn: '0 0 0 * * *'` are still supported. Omitted jobs keep their
+built-in schedules.
 
-The internal polling jobs `dailiesReminder`, `howlScratchCard`, and `weekliesReminder` retain their built-in fixed schedules. Schedule objects for these jobs are rejected; legacy string overrides remain ignored. Whitelist/blacklist filters apply before schedule validation.
+The internal polling jobs `dailiesReminder`, `howlScratchCard`, and
+`weekliesReminder` retain their built-in fixed schedules. Schedule objects for
+these jobs are rejected; legacy string overrides remain ignored.
+Whitelist/blacklist filters apply before schedule validation.
 
-These three reminder jobs automatically select a random time per account within the remaining part of their existing five-minute window, using the account's server time or the configured dailies timezone. Choices and attempt markers persist in the cache; each account receives at most one attempt per reminder and local date, including failed requests. Polling schedules stay fixed, but one-shot timers invoke the API at the selected time. A restart reuses the choice while the window is open; expired windows are skipped.
+These three reminder jobs automatically select a random time per account within
+the remaining part of their existing five-minute window, using the account's
+server time or the configured dailies timezone. Choices and attempt markers
+persist in the cache; each account receives at most one attempt per reminder and
+local date, including failed requests. Polling schedules stay fixed, but
+one-shot timers invoke the API at the selected time. A restart reuses the choice
+while the window is open; expired windows are skipped.
 
-Mimo/Hilichurl operation pauses (including Hilichurl browse/watch read times) and shared code redemption cooldown waits automatically add a fresh random delay of 0–2 seconds to their required minimum waits. Public codes, reward codes, permanent gift codes and manual redemptions use the same per-account redemption queue. This also applies when these operations are invoked manually. Server-requested redemption cooldowns remain a lower bound. Mimo/Hilichurl rate-limit retry delays, Telegram polling, Diary, and the separate Google Apps Script implementation are unchanged.
+Mimo/Hilichurl operation pauses (including Hilichurl browse/watch read times)
+and shared code redemption cooldown waits automatically add a fresh random delay
+of 0–2 seconds to their required minimum waits. Public codes, reward codes,
+permanent gift codes and manual redemptions use the same per-account redemption
+queue. This also applies when these operations are invoked manually.
+Server-requested redemption cooldowns remain a lower bound. Mimo/Hilichurl
+rate-limit retry delays, Telegram polling, Diary, and the separate Google Apps
+Script implementation are unchanged.
 
 ```json5
 crons: {
@@ -189,25 +263,53 @@ crons: {
 },
 ```
 
-Interval bounds accept one or more number/unit pairs: `ms`, `s`, `m`, `h`, `d`, or `w` (for example `30m`, `1.5h`, `1h30m`, or `1d 2h`). Components are added together. Days and weeks mean fixed durations of 24 hours and 7 days. Interval mode enforces a minimum delay of **5 minutes** after completion: both bounds must be at least `5m`, with `max >= min`. Shorter durations are rejected at startup, including equivalent values in seconds or milliseconds.
+Interval bounds accept one or more number/unit pairs: `ms`, `s`, `m`, `h`, `d`,
+or `w` (for example `30m`, `1.5h`, `1h30m`, or `1d 2h`). Components are added
+together. Days and weeks mean fixed durations of 24 hours and 7 days. Interval
+mode enforces a minimum delay of **5 minutes** after completion: both bounds
+must be at least `5m`, with `max >= min`. Shorter durations are rejected at
+startup, including equivalent values in seconds or milliseconds.
 
-The example selects a new 30–60 minute delay after each execution **completes**, preventing overlap; an expired interval at startup gets a fresh delay. Daily windows use local process time (`HH:mm`; equal start/end is rejected) and invoke a job at most once per local date. A saved choice due earlier today runs once on restart; starting after the window without a saved choice waits until tomorrow. Timers may run late if the process is busy or suspended.
+The example selects a new 30–60 minute delay after each execution **completes**,
+preventing overlap; an expired interval at startup gets a fresh delay. Daily
+windows use local process time (`HH:mm`; equal start/end is rejected) and invoke
+a job at most once per local date. A saved choice due earlier today runs once on
+restart; starting after the window without a saved choice waits until tomorrow.
+Timers may run late if the process is busy or suspended.
 
-An end earlier than the start crosses midnight: `checkIn: { mode: 'daily-window', start: '23:00', end: '01:00' }`. Each window permits one attempt and retains its identity across midnight and restarts. Startup after midnight uses the remaining part of the active window. A choice due before midnight can still run until that window ends. To preserve the one-attempt-per-local-date limit, an attempt after midnight restricts the following window to its next-day portion.
+An end earlier than the start crosses midnight: `checkIn: { mode:
+'daily-window', start: '23:00', end: '01:00' }`. Each window permits one attempt
+and retains its identity across midnight and restarts. Startup after midnight
+uses the remaining part of the active window. A choice due before midnight can
+still run until that window ends. To preserve the one-attempt-per-local-date
+limit, an attempt after midnight restricts the following window to its next-day
+portion.
 
-Schedules and daily attempt markers persist in `data/cache.json`. Keep this file across restarts and run only one application process per cache; deleting it resets these protections. Failed daily attempts wait for the next day. Disable `mimoJitter`/`hilichurlJitter` (set to `0`) before randomizing that job; combining them is rejected. Whitelist/blacklist rules still apply. Mimo restock runs keep their fixed upstream times in every schedule mode; set `mimoRestock: false` to disable these extra runs.
+Schedules and daily attempt markers persist in `data/cache.json`. Keep this file
+across restarts and run only one application process per cache; deleting it
+resets these protections. Failed daily attempts wait for the next day. Disable
+`mimoJitter`/`hilichurlJitter` (set to `0`) before randomizing that job;
+combining them is rejected. Whitelist/blacklist rules still apply. Mimo restock
+runs keep their fixed upstream times in every schedule mode; set `mimoRestock:
+false` to disable these extra runs.
 
-The setup generator offers all three modes and exports the unified object format, while preserving imported cron options it does not expose. This feature provides scheduling variability, not account-safety guarantees.
+The setup generator offers all three modes and exports the unified object
+format, while preserving imported cron options it does not expose. This feature
+provides scheduling variability, not account-safety guarantees.
 
 ### Cache File Location
 
-After running the application for the first time, a cache file will be automatically created at:
-```
+After running the application for the first time, a cache file will be
+automatically created at:
+
+```text
 ./data/cache.json
 ```
 
-This file stores temporary data to improve performance and reduce API calls. The `data/` directory structure will look like this:
-```
+This file stores temporary data to improve performance and reduce API calls. The
+`data/` directory structure will look like this:
+
+```text
 project-root/
 ├── data/
 │   ├── cache.json    # Auto-generated cache file
@@ -218,6 +320,7 @@ project-root/
 ```
 
 **Important Notes:**
+
 - The cache file is automatically managed by the application
 - Do not manually edit the cache file
 - The cache file will be recreated if deleted
@@ -227,7 +330,9 @@ project-root/
 ## Migration
 
 > [!NOTE]
-> If you're using this project since the `config.js` file or `config.jsonc` and you're updating to the latest version, please run the following command to migrate your configuration to the new format.
+> If you're using this project since the `config.js` file or `config.jsonc` and
+you're updating to the latest version, please run the following command to
+migrate your configuration to the new format.
 
 ```bash
 npm run migrate
@@ -240,7 +345,9 @@ node convert.js
 ```
 
 ## Usage
-For a detailed usage guide, refer to this gist: [Cookie Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
+
+For a detailed usage guide, refer to this gist: [Cookie
+Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
 
 The configured cookie must contain `ltoken_v2`, `ltuid_v2` and `ltmid_v2`, even
 when `stoken` is present. Redemption also uses `cookie_token_v2`,
@@ -264,15 +371,15 @@ success time is also saved in `data/cache.json` under
 A cache-write failure is logged and does not undo a successful refresh.
 
 Keep the configured cookie private. Cookies copied from normal HoYoLAB website
-requests usually do not include `stoken`. The optional
-[HoYoLAB cookie helper](https://github.com/Smexhy/hoyolab-cookie-helper) obtains it
-through an app login flow on Windows, macOS, or Linux. It is a third-party helper
-and is only needed for automatic cookie refresh.
+requests usually do not include `stoken`. The optional [HoYoLAB cookie
+helper](https://github.com/Smexhy/hoyolab-cookie-helper) obtains it through an
+app login flow on Windows, macOS, or Linux. It is a third-party helper and is
+only needed for automatic cookie refresh.
 
 ### Sharing one cookie across games
 
-If several games use the same HoYoLAB login, you can define the cookie once in
-a top-level `cookies` list and point each account entry at it with `cookieKey`:
+If several games use the same HoYoLAB login, you can define the cookie once in a
+top-level `cookies` list and point each account entry at it with `cookieKey`:
 
 ```json5
 cookies: {
@@ -298,76 +405,108 @@ existing configs keep working unchanged. If `cookieKey` does not match any entry
 in `cookies`, a warning is logged and that account is skipped.
 
 ## Notifications Setup
-For setting up Discord or Telegram notifications, refer to the [setup folder](https://github.com/torikushiii/hoyolab-auto/tree/main/setup).
 
-[Gotify notifications](./setup/GOTIFY.md) are also supported. Configure a `gotify`
+For setting up Discord or Telegram notifications, refer to the [setup
+folder](https://github.com/torikushiii/hoyolab-auto/tree/main/setup).
+
+[Gotify notifications](./setup/GOTIFY.md) are also supported. Configure a
+`gotify`
 platform with your server URL and application token to receive check-in results,
 reminders, redemption results, and cookie alerts. The setup generator can import
-and export these settings. Per-account `allowedPlatforms` routing applies to Gotify.
+and export these settings. Per-account `allowedPlatforms` routing applies to
+Gotify.
 
 ## Running with Docker
 
-This application can be easily managed and run using Docker. We provide a Makefile
-for convenience, but you can also use Docker commands directly.
+This application can be easily managed and run using Docker. We provide a
+Makefile for convenience, but you can also use Docker commands directly.
 
-**1. Prerequisites**
+### 1. Prerequisites
 
-- **Docker:**  Ensure Docker is installed and running. Download it from [https://www.docker.com/](https://www.docker.com/).
-- **Docker Compose:** Most Docker installations include Docker Compose. If not, install it from [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
+- **Docker:**  Ensure Docker is installed and running. Download it from
+  [https://www.docker.com/](https://www.docker.com/).
+- **Docker Compose:** Most Docker installations include Docker Compose. If not,
+  install it from
+  [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
-**2. Configuration**
+### 2. Configuration
 
 You can configure your config using one of the following methods:
 
 1. **Using the Setup Script:**
    - For Windows, run the following npm script from the project root:
+
      ```bash
      npm run setup:windows
      ```
+
    - For Linux, use this command:
+
      ```bash
      npm run setup:linux
      ```
-   - These commands will automatically open your default web browser to help you configure your settings through a web-based interface.
+
+   - These commands will automatically open your default web browser to help you
+     configure your settings through a web-based interface.
 
 2. **Manual Configuration:**
    - Copy the `default.config.json5` file to create a `config.json5` file:
+
      ```bash
      cp default.config.json5 config.json5
      ```
-   - Open `config.json5` and update it with your application's configuration settings.
-   - Set environment variable `CONFIG_PATH` to alter the configuration file path (default to `./config.json5`).
+
+   - Open `config.json5` and update it with your application's configuration
+     settings.
+   - Set environment variable `CONFIG_PATH` to alter the configuration file path
+     (default to `./config.json5`).
 
 **Important for Docker Users:**
 > [!NOTE]
-> When running with Docker, the cache file will be created inside the container at `/app/data/cache.json`. To persist cache data between container restarts, ensure the `data` directory is properly mounted as a volume (this is already configured in the provided `docker-compose.yml`).
+> When running with Docker, the cache file will be created inside the container
+at `/app/data/cache.json`. To persist cache data between container restarts,
+ensure the `data` directory is properly mounted as a volume (this is already
+configured in the provided `docker-compose.yml`).
 > If this is your first time running docker:
-> - Make sure your user is listed in the docker group, you can do so by running `sudo usermod -aG docker $USER`, logging out and back in
-> - From the project root, grant yourself perms to not have errors while accessing certain folders such as `data`. We can fix this by running `sudo chown -R $USER:$USER data logs && chmod -R 777 data logs`
+>
+> - Make sure your user is listed in the docker group, you can do so by running
+`sudo usermod -aG docker $USER`, logging out and back in
+> - From the project root, grant yourself perms to not have errors while
+accessing certain folders such as `data`. We can fix this by running `sudo chown
+-R $USER:$USER data logs && chmod -R 777 data logs`
 
-**3. Building and Running with Docker Compose**
+### 3. Building and Running with Docker Compose
 
 **Using the Makefile (Recommended):**
 
 The provided Makefile simplifies common Docker tasks.
 
 - **Build the image:**
+
   ```bash
   make build
   ```
+
 - **Start the application:**
+
   ```bash
   make up
   ```
+
 - **Stop the application:**
+
   ```bash
   make down
   ```
+
 - **View logs:**
+
   ```bash
   make logs
   ```
+
 - **Rebuild and restart:**
+
   ```bash
   make update
   ```
@@ -380,56 +519,102 @@ The provided Makefile simplifies common Docker tasks.
 
 **Using Docker Compose Directly:**
 
-If you prefer not to use the Makefile, you can use the following Docker Compose commands:
+If you prefer not to use the Makefile, you can use the following Docker Compose
+commands:
 
 - **Build the image:**
+
   ```bash
   docker-compose build
   ```
+
 - **Start the application:**
+
   ```bash
   docker-compose up -d
   ```
+
 - **Stop the application:**
+
   ```bash
   docker-compose down
   ```
+
 - **View logs:**
+
   ```bash
   docker-compose logs -f instance
   ```
+
 - **Rebuild and restart:**
+
   ```bash
   docker-compose down && docker-compose build && docker-compose up -d
   ```
 
 ## Contributing
 
-Genshin code redemption uses the browser gift endpoint for both commands and automatic redemption, without DS or native-app headers. The configured language is sent as a short language code; `sLangKey` remains `en-us`, matching the observed gift-page requests. Existing account eligibility and code-cache behavior are preserved.
+Genshin code redemption uses the browser gift endpoint for both commands and
+automatic redemption, without DS or native-app headers. The configured language
+is sent as a short language code; `sLangKey` remains `en-us`, matching the
+observed gift-page requests. Existing account eligibility and code-cache
+behavior are preserved.
 
-Public codes, event rewards, and manual redemptions share a per-account cooldown queue. Temporary failures leave reward and manual codes pending for the code-redemption job to retry while `redeemCode` is enabled, including when no new public codes are available.
+Public codes, event rewards, and manual redemptions share a per-account cooldown
+queue. Temporary failures leave reward and manual codes pending for the
+code-redemption job to retry while `redeemCode` is enabled, including when no
+new public codes are available.
 
-Already-redeemed and usage-limit notifications show the result without suggesting manual redemption.
+Already-redeemed and usage-limit notifications show the result without
+suggesting manual redemption.
 
-Tears of Themis automatic and command redemption share its browser GET endpoint after looking up the linked character with the account's cookie. Its setup option is `redeemCode` inside the `termis` account's `data` entry: `true` enables automatic and command redemption, `false` disables code handling, and existing configurations without the option keep manual-code notifications and allow command redemption. The existing public-code baseline/cache is preserved, so enabling it does not replay previously seen codes. Temporary redemption failures remain pending for subsequent runs while automatic redemption is enabled. Honkai Impact 3rd still requires redemption outside the bot; `/redeem` supports Genshin, HSR, ZZZ and ToT.
+Tears of Themis automatic and command redemption share its browser GET endpoint
+after looking up the linked character with the account's cookie. Its setup
+option is `redeemCode` inside the `termis` account's `data` entry: `true`
+enables automatic and command redemption, `false` disables code handling, and
+existing configurations without the option keep manual-code notifications and
+allow command redemption. The existing public-code baseline/cache is preserved,
+so enabling it does not replay previously seen codes. Temporary redemption
+failures remain pending for subsequent runs while automatic redemption is
+enabled. Honkai Impact 3rd still requires redemption outside the bot; `/redeem`
+supports Genshin, HSR, ZZZ and ToT.
 
-If the ToT character cannot be loaded, daily check-in remains available, but the account is omitted from redemption selectors. Restore the linked character/redemption cookie, then restart the bot and reopen `/redeem` to load its identity.
+If the ToT character cannot be loaded, daily check-in remains available, but the
+account is omitted from redemption selectors. Restore the linked
+character/redemption cookie, then restart the bot and reopen `/redeem` to load
+its identity.
 
-Honkai: Star Rail and Zenless Zone Zero redemption also use their captured browser gift endpoints. Their POST requests require the configured cookie's `_MHYUUID` value as both the browser identity cookie and `device_uuid`; if it is missing, redemption is skipped and the account needs a newly acquired cookie. Other account features remain available.
+Honkai: Star Rail and Zenless Zone Zero redemption also use their captured
+browser gift endpoints. Their POST requests require the configured cookie's
+`_MHYUUID` value as both the browser identity cookie and `device_uuid`; if it is
+missing, redemption is skipped and the account needs a newly acquired cookie.
+Other account features remain available.
 
-Run `npm test` for offline HTTP request-contract, result/cache, and setup locale round-trip tests, and `npm run lint` for lint checks. The tests use synthetic data and do not require account cookies or network access. See [HTTP request contexts](gots/hoyolab-contexts/README.md) for profile selection, Passport refresh, the internal qiuqiu lottery exception, and validation limits.
+Run `npm test` for offline HTTP request-contract, result/cache, and setup locale
+round-trip tests, and `npm run lint` for lint checks. The tests use synthetic
+data and do not require account cookies or network access. See [HTTP request
+contexts](gots/hoyolab-contexts/README.md) for profile selection, Passport
+refresh, the internal qiuqiu lottery exception, and validation limits.
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. If there are any bugs, please open an issue.
+Pull requests are welcome. For major changes, please open an issue first to
+discuss what you would like to change. If there are any bugs, please open an
+issue.
 
 If you have any suggestions or ideas, feel free to open an issue.
 
 **New to contributing?**
 
-To get started, fork the repo, make your changes, add, commit, and push your changes to your fork. Then, open a pull request. If you're new to GitHub, [this tutorial](https://www.freecodecamp.org/news/how-to-make-your-first-pull-request-on-github-3#let-s-make-our-first-pull-request-) might help.
+To get started, fork the repo, make your changes, add, commit, and push your
+changes to your fork. Then, open a pull request. If you're new to GitHub, [this
+tutorial](https://www.freecodecamp.org/news/how-to-make-your-first-pull-request-on-github-3#let-s-make-our-first-pull-request-)
+might help.
 
-You can support the project by giving it a star, sharing it with your friends, contributing to the project, and reporting any bugs you find.
+You can support the project by giving it a star, sharing it with your friends,
+contributing to the project, and reporting any bugs you find.
 
 ## Buy Me a Coffee
-If this repo is useful to you, you can support me by buying me a coffee. Thank you!
+
+If this repo is useful to you, you can support me by buying me a coffee. Thank
+you!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/torikushiii)

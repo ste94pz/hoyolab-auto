@@ -105,7 +105,7 @@ module.exports = class TravelingMimo {
 					return res;
 				}
 
-				const maxWait = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+				const maxWait = Math.min(baseDelay * 2 ** attempt, maxDelay);
 				const totalDelay = Math.floor(baseDelay + Math.random() * (maxWait - baseDelay));
 
 				app.Logger.info(`${this.#instance.fullName}:Mimo`, t `Rate limited, retrying in ${totalDelay}ms (attempt ${attempt}/${maxRetries})`);

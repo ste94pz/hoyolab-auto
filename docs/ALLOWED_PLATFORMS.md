@@ -1,10 +1,15 @@
 # allowedPlatforms — Per-Account Platform Routing
 
-The `allowedPlatforms` field lets you control which notification platforms receive messages for each individual account. This makes it possible to have separate Discord channels per game, per account, or any combination you want.
+The `allowedPlatforms` field lets you control which notification platforms
+receive messages for each individual account. This makes it possible to have
+separate Discord channels per game, per account, or any combination you want.
 
 ## How It Works
 
-When a cron job fires a notification, it calls `Platform.getForAccount(account)` which returns the filtered list of platforms for that account. The result is then used to send notifications instead of broadcasting to every configured platform.
+When a cron job fires a notification, it calls `Platform.getForAccount(account)`
+which returns the filtered list of platforms for that account. The result is
+then used to send notifications instead of broadcasting to every configured
+platform.
 
 ## Configuration
 
@@ -28,7 +33,7 @@ Add `allowedPlatforms` to any account entry inside a game's `data[]` array:
 ### Values
 
 | Value | Behaviour |
-|---|---|
+| --- | --- |
 | `null` | All configured platforms receive notifications (default — existing behaviour) |
 | `[]` | No platforms receive notifications (silences this account) |
 | `[3]` | Only the platform with `id: 3` receives notifications |
@@ -92,7 +97,8 @@ accounts: [
 ]
 ```
 
-Telegram (`id: 2`) is excluded here — add it to `allowedPlatforms` if you also want Telegram notifications for that account, e.g. `allowedPlatforms: [2, 4]`.
+Telegram (`id: 2`) is excluded here — add it to `allowedPlatforms` if you also
+want Telegram notifications for that account, e.g. `allowedPlatforms: [2, 4]`.
 
 ## Use Case: Separate Channels per Account (Multi-Account)
 
@@ -120,7 +126,8 @@ If you have two Star Rail accounts and want them in different Discord channels:
 
 ## Use Case: Silence an Account
 
-Set `allowedPlatforms: []` to disable notifications for a specific account without disabling the account itself:
+Set `allowedPlatforms: []` to disable notifications for a specific account
+without disabling the account itself:
 
 ```json5
 {
@@ -132,4 +139,5 @@ Set `allowedPlatforms: []` to disable notifications for a specific account witho
 
 ## Backwards Compatibility
 
-`allowedPlatforms` is optional. Existing configs that do not include it will behave exactly as before — all configured platforms receive all notifications.
+`allowedPlatforms` is optional. Existing configs that do not include it will
+behave exactly as before — all configured platforms receive all notifications.

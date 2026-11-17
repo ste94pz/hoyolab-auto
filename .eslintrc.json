@@ -181,6 +181,12 @@
         "ecmaVersion": 2021,
         "requireConfigFile": false
     },
+    "overrides": [{
+        "files": ["services/google-script/index.js"],
+        "env": { "node": false },
+        "parserOptions": { "sourceType": "script" },
+        "globals": { "console": "readonly" }
+    }],
     "globals": {
         "app": "readonly"
     }

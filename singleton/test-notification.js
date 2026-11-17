@@ -182,11 +182,13 @@ async function sendManualTestNotification (platform, options = {}) {
 
 			case "telegram": {
 				const escapeMarkdown = (text) => text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
-				const testMessage = t `🧪 *HoyoLab Auto \\- Manual Test*\n\n`
-					+ `${escapeMarkdown(customMessage)}\n\n`
-					+ t `🔧 *Test Type:* Manual\n`
-					+ t `🕒 *Triggered At:* ${escapeMarkdown(localTime)}\n`
-					+ t `🤖 *Platform:* Telegram Bot`;
+				const testMessage = [
+					t `🧪 *HoyoLab Auto \\- Manual Test*\n\n`,
+					`${escapeMarkdown(customMessage)}\n\n`,
+					t `🔧 *Test Type:* Manual\n`,
+					t `🕒 *Triggered At:* ${escapeMarkdown(localTime)}\n`,
+					t `🤖 *Platform:* Telegram Bot`
+				].join("");
 
 				await platform.send(testMessage);
 				break;
