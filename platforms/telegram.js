@@ -7,6 +7,11 @@ module.exports = class Telegram extends require("./template.js") {
 	messageListeners = [];
 
 	handlingCallbackQuery = false;
+	#pollPromise = null;
+	#pollTimer = null;
+	#pollDelay = 5000;
+	#pollFailures = 0;
+	#destroyed = false;
 
 	static possibleCommands = [
 		"/stamina",
@@ -29,11 +34,53 @@ module.exports = class Telegram extends require("./template.js") {
 			});
 		}
 
-		// If you received error message such as "409: Conflict", try to increase the interval
-		setInterval(() => this.connect(), 5000);
+		this.#pollTimer = setTimeout(() => this.connect(), this.#pollDelay);
 	}
 
-	async connect () {
+	connect () {
+		if (this.#destroyed) {
+			return Promise.resolve();
+		}
+		if (this.#pollPromise) {
+			return this.#pollPromise;
+		}
+		clearTimeout(this.#pollTimer);
+		this.#pollPromise = this.#poll().finally(() => {
+			this.#pollPromise = null;
+			if (!this.#destroyed) {
+				this.#pollTimer = setTimeout(() => this.connect(), this.#pollDelay);
+			}
+		});
+		return this.#pollPromise;
+	}
+
+	async #poll () {
+		try {
+			await this.#getUpdates();
+			this.#pollFailures = 0;
+			this.#pollDelay = 5000;
+		}
+		catch (e) {
+			this.#pollFailures++;
+			const statusCode = e?.args?.statusCode;
+			const retryAfter = e?.args?.body?.parameters?.retry_after;
+			this.#pollDelay = Math.min(5000 * (2 ** Math.min(this.#pollFailures, 4)), 60000);
+			if (statusCode === 409) {
+				this.#pollDelay = Math.max(this.#pollDelay, 30000);
+			}
+			if (Number.isFinite(retryAfter) && retryAfter > 0) {
+				this.#pollDelay = Math.max(this.#pollDelay, retryAfter * 1000);
+			}
+			app.Logger.warn("Telegram", t `Telegram polling failed (HTTP ${statusCode ?? "N/A"}); retrying in ${this.#pollDelay}ms`);
+		}
+	}
+
+	destroy () {
+		this.#destroyed = true;
+		clearTimeout(this.#pollTimer);
+	}
+
+	async #getUpdates () {
 		const res = await app.Got("API", {
 			url: `https://api.telegram.org/bot${this.token}/getUpdates`,
 			method: "POST",
@@ -45,7 +92,10 @@ module.exports = class Telegram extends require("./template.js") {
 			}
 		});
 
-		if (res.body.ok !== true) {
+		if (this.#destroyed) {
+			return;
+		}
+		if (res.body?.ok !== true) {
 			throw new app.Error({
 				message: t("Failed to get telegram updates"),
 				args: {
@@ -252,7 +302,11 @@ module.exports = class Telegram extends require("./template.js") {
 	async processMessageUpdates (result) {
 		for (const update of result) {
 			if (update.callback_query && !this.handlingCallbackQuery) {
-				await this.handleMessage(update);
+				// Redemption waits for a later update containing the user's code.
+				// Keep polling while that conversation is pending and handle its errors.
+				void this.handleMessage(update).catch(() => {
+					app.Logger.error("Telegram", t("Telegram callback handling failed"));
+				});
 			}
 			else if (update.message) {
 				const { message } = update;

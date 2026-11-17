@@ -37,6 +37,20 @@ you can create a Telegram bot and paste the value into the `config.json5` file.
 10. You should receive a Telegram notification when the check-in is successful
     and any other features that you have enabled.
 
+## Polling and errors
+
+Each bot token should be used by only one running bot instance. Updates are polled
+five seconds after the previous poll completes, with no overlapping requests.
+Failures are logged and retried with increasing delays, up to one minute;
+Telegram's `retry_after` can extend that delay. Conflicts (HTTP 409) wait at least
+30 seconds. Successful polls restore the normal interval. Interactive code
+redemption continues polling while waiting for your reply.
+
+HTTP diagnostics redact Telegram bot tokens, Discord webhook tokens, URL login
+credentials, query values, and fragments. Existing log files are not rewritten;
+if an older log exposed your bot token, revoke it through @BotFather and update
+your configuration.
+
 ## Screenshots
 
 Here are some screenshots of the bot in action:

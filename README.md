@@ -253,7 +253,7 @@ permanent gift codes and manual redemptions use the same per-account redemption
 queue. This also applies when these operations are invoked manually.
 Server-requested redemption cooldowns remain a lower bound. Mimo/Hilichurl
 rate-limit retry delays, Telegram polling, Diary, and the separate Google Apps
-Script implementation are unchanged.
+Script implementation are not controlled by these scheduling options.
 
 ```json5
 crons: {

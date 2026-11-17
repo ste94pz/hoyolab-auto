@@ -4,6 +4,7 @@ const { createLogger, format, transports, addColors } = require("winston");
 const { combine, colorize, timestamp, printf } = format;
 const chalk = require("chalk");
 const util = require("node:util");
+const redactHttp = require("../object/redact-http.js");
 
 class Logger {
 	constructor (config) {
@@ -18,7 +19,7 @@ class Logger {
 
 		this.logFormat = printf(({ level, message, timestamp }) => {
 			const sendTarget = `<${level}:${chalk.gray(message.type)}> ${message.text}`;
-			return `${chalk.magenta(timestamp)} ${sendTarget}`;
+			return redactHttp(`${chalk.magenta(timestamp)} ${sendTarget}`);
 		});
 
 		this.winstonLogger = createLogger({
@@ -47,7 +48,7 @@ class Logger {
 						}),
 						printf(({ level, message, timestamp }) => {
 							const sendTarget = `<${level}:${message.type}> ${message.text}`;
-							return `${timestamp} ${sendTarget}`;
+							return redactHttp(`${timestamp} ${sendTarget}`);
 						})
 					)
 				}),
@@ -59,7 +60,7 @@ class Logger {
 						}),
 						printf(({ level, message, timestamp }) => {
 							const sendTarget = `<${level}:${message.type}> ${message.text}`;
-							return `${timestamp} ${sendTarget}`;
+							return redactHttp(`${timestamp} ${sendTarget}`);
 						})
 					)
 				})

@@ -1,4 +1,5 @@
 const { t } = require("../../localization/index.js");
+const redactHttp = require("../../object/redact-http.js");
 
 const definition = {
 	name: "Global",
@@ -32,13 +33,13 @@ const definition = {
 						}
 
 						const method = err.options?.method?.toUpperCase?.() ?? "UNKNOWN";
-						const endpoint = err.options?.url?.toString?.() ?? null;
+						const endpoint = err.options?.url ? redactHttp(err.options.url.toString()) : null;
 						const code = err.code ?? null;
 						const responseType = err.options?.responseType ?? null;
 						const timeout = err.options?.timeout ?? null;
 
 						app.Logger.debug("GotRequest", {
-							message: err.message,
+							message: redactHttp(err.message),
 							context: {
 								code,
 								responseType,

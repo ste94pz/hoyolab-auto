@@ -39,6 +39,8 @@
 			"No chat ID provided for Telegram controller": "Nessun ID chat fornito per il controller Telegram",
 			"Telegram token has not been configured for the bot": "Il token Telegram del bot non è stato configurato",
 			"Failed to get telegram updates": "Impossibile ottenere gli aggiornamenti Telegram",
+			"Telegram polling failed (HTTP {0}); retrying in {1}ms": "Polling Telegram non riuscito (HTTP {0}); nuovo tentativo tra {1}ms",
+			"Telegram callback handling failed": "Gestione del callback Telegram non riuscita",
 			"Provided message is not a string": "Il messaggio fornito non è una stringa",
 			"Failed to send telegram message": "Invio del messaggio Telegram non riuscito",
 			"There are no accounts available for redeeming codes.": "Non ci sono account disponibili per riscattare codici.",
