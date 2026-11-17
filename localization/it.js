@@ -186,6 +186,7 @@
 			"HoyoLab Notes - {0}": "Note HoYoLAB - {0}",
 			"Stored Attendance: {0}": "Punti incontro accumulati: {0}",
 			"Refresh in: {0}": "Ripristino tra: {0}",
+			"Not available": "non disponibile",
 			"Stored Attendance": "Punti incontro accumulati",
 			"Weekly Boss:": "Boss settimanali:",
 			"Realm Currency": "Valuta del regno",

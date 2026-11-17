@@ -207,6 +207,10 @@ If Notes reports error `10102`, enable Realtime Notes in HoYoLAB's Genshin
 Impact Battle Chronicle settings. The application does not change your privacy
 settings.
 
+In Genshin Notes, "Refresh in" refers to stored Encounter Points. Missing,
+invalid, or implausible countdowns (over 366 days) are displayed as "Not
+available" on Telegram and Discord.
+
 HSR account discovery and Realtime Notes, and Honkai Impact 3rd account
 discovery, use signed desktop Game Record APIs while preserving the configured
 language. Their request and result/cache contracts are tested offline; headless

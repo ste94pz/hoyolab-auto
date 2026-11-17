@@ -1,5 +1,16 @@
 const { t } = require("../../localization/index.js");
 
+const formatAttendanceRefresh = (value) => {
+	const seconds = typeof value === "number" || (typeof value === "string" && value.trim() !== "")
+		? Number(value)
+		: NaN;
+	// Treat implausible API countdowns as unavailable, without inventing a reset date.
+	const maximumCountdown = 366 * 24 * 60 * 60;
+	return Number.isFinite(seconds) && seconds >= 0 && seconds <= maximumCountdown
+		? app.Utils.formatTime(seconds)
+		: t("Not available");
+};
+
 const getNotesEmbedData = async (accounts, game, platformId) => {
 	const embedData = [];
 	for (const account of accounts) {
@@ -44,7 +55,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 				const { task, maxTask, storedAttendance, storedAttendanceRefresh } = dailies;
 
 				const storedAttendanceText = t `Stored Attendance: ${storedAttendance}`;
-				const refreshText = t `Refresh in: ${app.Utils.formatTime(storedAttendanceRefresh)}`;
+				const refreshText = t `Refresh in: ${formatAttendanceRefresh(storedAttendanceRefresh)}`;
 
 				embed.fields.push(
 					{
@@ -144,7 +155,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 					expedition.list.map((i, idx) => t `Account ${idx + 1} - ${app.Utils.formatTime(i.remaining_time)}`).join("\n"),
 					t `Dailies: ${task}/${maxTask}`,
 					t `Stored Attendance: ${storedAttendance}`,
-					t `Refresh in: ${app.Utils.formatTime(storedAttendanceRefresh)}`,
+					t `Refresh in: ${formatAttendanceRefresh(storedAttendanceRefresh)}`,
 					t `Weekly Boss Chance Remaining: ${weeklies.resinDiscount}/${weeklies.resinDiscountLimit}`
 				].join("\n");
 			}

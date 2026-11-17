@@ -226,3 +226,49 @@ test("Notes forwards the complete supplied cookie, including fields outside the 
 	await game.notes(account);
 	assertRequest(requests[1], true, "en-us", account.cookie);
 });
+
+for (const language of ["en-us", "it-it"]) {
+	for (const platformId of [1, 2]) {
+		test(`Notes renders stored point refresh safely, fresh and cached (${language}, platform ${platformId})`, async (t) => {
+			const { setLanguage } = require("../localization/index.js");
+			const { game, replies, requests, cache } = await setup(t, language);
+			setLanguage(language);
+			t.after(() => setLanguage());
+			replies.push(card());
+			await game.login();
+			Object.assign(app.HoyoLab, {
+				supportedGames: () => ["genshin"],
+				getActiveAccounts: () => game.accounts,
+				get: () => game
+			});
+			const sent = [];
+			app.Platform = { get: () => ({ send: async message => sent.push(message) }) };
+			const context = { platform: { id: platformId } };
+			if (platformId === 1) {
+				context.interaction = { reply: async message => sent.push(message) };
+			}
+			const unavailable = language === "it-it" ? "non disponibile" : "Not available";
+			const prefix = language === "it-it" ? "Ripristino tra: " : "Refresh in: ";
+			const maximum = 366 * 86400;
+			for (const value of [2500034210, "2500034210", undefined, null, "", "  ", "invalid", -1, true, maximum + 1, 0, "7200", 7200, 300 * 86400, maximum]) {
+				cache.clear();
+				const response = dailyNote();
+				response.body.data.daily_task.stored_attendance_refresh_countdown = value;
+				replies.push(response);
+				const valid = [0, "7200", 7200, 300 * 86400, maximum].includes(value);
+				const expected = prefix + (valid ? app.Utils.formatTime(Number(value)) : unavailable);
+				const requestCount = requests.length;
+				for (const cached of [false, true]) {
+					await require("../commands/notes/index.js").run(context, "genshin");
+					const message = sent.pop();
+					const text = platformId === 1
+						? message.embeds[0].fields.map(field => field.value).join("\n")
+						: message;
+					const rendered = platformId === 1 ? text : text.replace(/\\/g, "");
+					assert.ok(rendered.includes(expected), `${String(value)}, cached=${cached}: ${rendered}`);
+					assert.equal(requests.length, requestCount + 1);
+				}
+			}
+		});
+	}
+}
