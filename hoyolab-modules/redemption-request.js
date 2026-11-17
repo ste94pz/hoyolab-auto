@@ -1,5 +1,3 @@
-const timers = require("node:timers/promises");
-
 const FINAL_REDEMPTION_ERRORS = new Set([-2001, -2003, -2006, -2017]);
 const queues = new Map();
 const pendingWrites = new Map();
@@ -62,7 +60,7 @@ const redemptionRequest = async (options, { persist = false, profile = "HoYoLabD
 		for (let attempt = 0; attempt < 3; attempt++) {
 			const delay = (nextRequestAt.get(key) ?? 0) - Date.now();
 			if (delay > 0) {
-				await timers.setTimeout(delay);
+				await app.Utils.waitWithJitter(delay);
 			}
 			try {
 				res = await app.Got(profile, {

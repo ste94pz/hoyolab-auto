@@ -10,6 +10,7 @@ The script will auto-generate a `cache.json` file in this directory once it has 
 - API response data to reduce server load
 - Temporary data to improve application performance
 - Reward and manually entered codes waiting for redemption after a temporary failure. The code redemption job retries these while `redeemCode` is enabled for the account, even if no new public codes are available.
+- Persistent randomized schedules and daily attempt markers (when enabled)
 
 ### Cache File Location
 - **Standard Installation**: `./data/cache.json`
@@ -18,8 +19,8 @@ The script will auto-generate a `cache.json` file in this directory once it has 
 ### Important Notes
 - **Do not manually edit** the cache file - it's managed automatically
 - The cache file will be **recreated if deleted**
-- Cache data expires automatically based on configured intervals
-- You can safely delete the cache file to reset all cached data
+- Temporary cache data expires automatically; scheduler state does not
+- Deleting the cache also resets schedules and daily attempt markers, potentially allowing another attempt that day
 - Deleting the cache also removes pending reward codes. Redeem any failed reward codes first if you want to keep their rewards.
 - Ensure this directory has **write permissions** for the application
 

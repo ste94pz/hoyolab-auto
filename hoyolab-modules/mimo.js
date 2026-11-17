@@ -807,7 +807,7 @@ module.exports = class TravelingMimo {
 						task.status = MimoTaskStatus.FINISHED;
 						app.Logger.info(`${this.#instance.fullName}:Mimo`, t `(${accountData.uid}) Finished task: ${task.name}`);
 					}
-					await sleep(1000);
+					await app.Utils.waitWithJitter(1000);
 				}
 				if (task.status === MimoTaskStatus.FINISHED) {
 					const claimResult = await this.claimTaskReward(accountData, task.id, versionId);
@@ -816,7 +816,7 @@ module.exports = class TravelingMimo {
 						results.points += task.point;
 						app.Logger.info(`${this.#instance.fullName}:Mimo`, t `(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`);
 					}
-					await sleep(1000);
+					await app.Utils.waitWithJitter(1000);
 				}
 			}
 		}
@@ -951,7 +951,7 @@ module.exports = class TravelingMimo {
 
 					if (!code) {
 						app.Logger.info(`${this.#instance.fullName}:Mimo`, t `(${accountData.uid}) Exchanged ${item.name}`);
-						await sleep(1500);
+						await app.Utils.waitWithJitter(1500);
 						continue;
 					}
 
@@ -977,7 +977,7 @@ module.exports = class TravelingMimo {
 					}
 				}
 
-				await sleep(1500);
+				await app.Utils.waitWithJitter(1500);
 			}
 
 			if (shopPolicyEnabled) {
@@ -1088,7 +1088,7 @@ module.exports = class TravelingMimo {
 						}
 					}
 
-					await sleep(1500);
+					await app.Utils.waitWithJitter(1500);
 					const updatedLotteryInfo = await this.getLotteryInfo(accountData, versionId).catch(() => ({ success: false }));
 					if (updatedLotteryInfo.success) {
 						if (Number.isFinite(Number(updatedLotteryInfo.data.currentPoints))) {

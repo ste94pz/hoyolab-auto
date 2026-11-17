@@ -25,6 +25,7 @@ const createSetup = () => {
 			set value (value) { element.val(value); },
 			get placeholder () { return element.attr("placeholder"); },
 			set textContent (value) { element.text(value); },
+			set innerHTML (value) { element.html(value); },
 			classList: {
 				add: (...names) => element.addClass(names.join(" ")),
 				remove: (...names) => element.removeClass(names.join(" "))

@@ -1,5 +1,6 @@
 const { Readable } = require("node:stream");
 const Got = require("../../classes/got.js");
+const Utils = require("../../singleton/utils.js");
 
 // Use sequential tests: the application's registry and Config are process globals.
 const createHttpHarness = async (t, config = {}) => {
@@ -7,6 +8,7 @@ const createHttpHarness = async (t, config = {}) => {
 	const logs = [];
 	global.app = {
 		Config: { get: (key) => config[key] },
+		Utils: new Utils(),
 		Logger: {
 			debug: (...args) => logs.push(args),
 			error: (...args) => logs.push(args)
@@ -16,6 +18,13 @@ const createHttpHarness = async (t, config = {}) => {
 	t.after(() => {
 		global.app = previousApp;
 	});
+
+	// Keep cooldowns deterministic while retaining the real minimum-wait logic.
+	const waitWithJitter = app.Utils.waitWithJitter.bind(app.Utils);
+	t.mock.method(app.Utils, "waitWithJitter", minimum => waitWithJitter(minimum, {
+		random: () => 0,
+		wait: ms => require("node:timers/promises").setTimeout(ms)
+	}));
 
 	// Reload the registry with this test configuration, matching app startup.
 	for (const path of ["../../gots/index.js"]) {

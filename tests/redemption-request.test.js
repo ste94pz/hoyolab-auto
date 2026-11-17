@@ -12,8 +12,9 @@ const options = (code, overrides = {}) => ({
 	searchParams: { game_biz: "nap_global", ...account, cdkey: code, ...overrides }
 });
 
-const harness = (store = new Map()) => {
+const harness = (store = new Map(), samples = [0]) => {
 	let now = 0;
+	let selection = 0;
 	const calls = [];
 	const modules = new Map();
 	const state = { respond: async () => response(), accounts: [{ ...account, platform: "nap" }]};
@@ -33,7 +34,12 @@ const harness = (store = new Map()) => {
 			isExpiredLogin: reason => /log in/i.test(reason ?? ""),
 			refreshStoredCookies: async () => false
 		},
-		Utils: { escapeCharacters: value => value },
+		Utils: {
+			escapeCharacters: value => value,
+			waitWithJitter: async minimum => {
+				now += minimum + Math.floor(samples[selection++ % samples.length] * 2000);
+			}
+		},
 		Platform: { getForAccount: () => [], getEmbedPlatforms: () => []},
 		Got: async (name, data) => {
 			if (name === "API") {
@@ -290,4 +296,31 @@ test("the scheduled job skips a saved code that another request redeems first", 
 	assert.equal(h.calls.length, 1);
 	assert.equal(result.success.length, 0);
 	assert.equal(result.failed.length, 0);
+});
+
+test("shared cooldowns add fresh jitter without shortening server retry delays", async () => {
+	const h = harness(new Map(), [0.5, 0.999999]);
+	h.state.respond = async () => h.calls.length === 1
+		? response(-2016, "Please try again in 12 seconds.")
+		: response();
+	await Promise.all([h.request(options("FIRST")), h.request(options("SECOND"))]);
+	assert.deepEqual(h.calls.map(call => call.at), [0, 14000, 21999]);
+});
+
+test("jittered cooldowns share the canonical account across HTTP profiles and payload types", async () => {
+	const h = harness(new Map(), [0.5]);
+	const canonical = { uid: "check-in-id", region: "Global" };
+	const first = { json: { game_biz: "tot_global", uid: "role-id", region: "os", cdkey: "FIRST" } };
+	const second = { searchParams: { ...first.json, cdkey: "SECOND" } };
+	await Promise.all([
+		h.request(first, { profile: "HoYoLabWebView", queueAccount: canonical, persist: true }),
+		h.request(second, { profile: "HoYoLabDesktopWeb", queueAccount: canonical, persist: true })
+	]);
+	assert.deepEqual(h.calls.map(call => call.at), [0, 7000]);
+	assert.deepEqual(h.calls.map(call => call.profile), ["HoYoLabWebView", "HoYoLabDesktopWeb"]);
+	assert.deepEqual({ ...h.calls[0].json }, first.json);
+	assert.equal(h.calls[0].searchParams, undefined);
+	assert.deepEqual({ ...h.calls[1].searchParams }, second.searchParams);
+	assert.equal(h.calls[1].json, undefined);
+	assert.deepEqual(await h.request.getPendingCodes("tot_global", canonical), []);
 });

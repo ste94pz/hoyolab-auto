@@ -335,7 +335,7 @@ module.exports = class HilichurlWorkshop {
 				// Try to auto-complete finishable tasks
 				if (task.status === TaskStatus.ONGOING && FinishableTaskTypes.includes(task.taskType)) {
 					if (TimedTaskTypes.includes(task.taskType) && task.readSeconds > 0) {
-						await sleep((task.readSeconds + 1) * 1000);
+						await app.Utils.waitWithJitter((task.readSeconds + 1) * 1000);
 					}
 
 					const finishResult = await this.finishTask(accountData, task.id, versionId, task.taskType);
@@ -344,7 +344,7 @@ module.exports = class HilichurlWorkshop {
 						task.status = TaskStatus.FINISHED;
 						app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Finished task: ${task.name}`);
 					}
-					await sleep(1000);
+					await app.Utils.waitWithJitter(1000);
 				}
 
 				// Claim completed tasks
@@ -355,7 +355,7 @@ module.exports = class HilichurlWorkshop {
 						results.points += task.point;
 						app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`);
 					}
-					await sleep(1000);
+					await app.Utils.waitWithJitter(1000);
 				}
 			}
 		}
@@ -384,7 +384,7 @@ module.exports = class HilichurlWorkshop {
 					results.freeItemsClaimed.push(item.name);
 					app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Claimed free item: ${item.name}`);
 				}
-				await sleep(1000);
+				await app.Utils.waitWithJitter(1000);
 			}
 
 			const currencyItems = shopItems.data
@@ -428,7 +428,7 @@ module.exports = class HilichurlWorkshop {
 					}
 				}
 
-				await sleep(1500);
+				await app.Utils.waitWithJitter(1500);
 			}
 		}
 

@@ -219,3 +219,31 @@ test("upstream shop policy reserves unavailable guaranteed rewards and saves its
 	assert.equal(result.data.lotteryDraws.length, 0);
 	assert.ok(writes.length > 0);
 });
+
+test("overlapping scheduled, restock and manual Mimo runs share the account guard", async (t) => {
+	const { mimo } = await setup(t);
+	flow(mimo);
+	let release;
+	const blocked = new Promise(resolve => {
+		release = resolve;
+	});
+	let starts = 0;
+	mimo.getGameInfo = async () => {
+		starts++;
+		await blocked;
+		return { success: true, data: { versionId: 999, points: 25 } };
+	};
+	const scheduled = mimo.run(account);
+	try {
+		for (let i = 0; i < 2; i++) {
+			assert.equal((await mimo.run({ ...account })).alreadyRunning, true);
+		}
+		assert.equal(starts, 1);
+	}
+	finally {
+		release();
+	}
+	assert.equal((await scheduled).success, true);
+	assert.equal((await mimo.run(account)).success, true);
+	assert.equal(starts, 4);
+});
