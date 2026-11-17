@@ -69,9 +69,11 @@ const createEmbed = (result) => {
 			name: `${result.nickname} (${result.uid})`,
 			icon_url: result.assets?.logo
 		},
-		description: hasActivity
-			? t("Successfully ran Hilichurl Workshop automation for Genshin Impact!")
-			: t("No new activity for Genshin Impact."),
+		description: result.status === "partial"
+			? t("Hilichurl automation partially completed; see errors.")
+			: (hasActivity
+				? t("Successfully ran Hilichurl Workshop automation for Genshin Impact!")
+				: t("No new activity for Genshin Impact.")),
 		fields,
 		thumbnail: {
 			url: result.assets?.logo
@@ -124,10 +126,14 @@ module.exports = {
 						uid: account.uid,
 						error: result.message || t("Unknown error")
 					});
-					continue;
+					app.Logger.warn("Command:Hilichurl", { uid: account.uid, status: result.status, error: result.message });
+					if (result.status !== "partial" || !result.data) {
+						continue;
+					}
 				}
 
 				results.push({
+					status: result.status,
 					uid: account.uid,
 					nickname: account.nickname,
 					...result.data
@@ -169,6 +175,6 @@ module.exports = {
 		}
 
 		const summaryLines = results.map(r => t `GI - ${r.nickname}: ${r.points} pts`);
-		return { success: true, reply: summaryLines.join("\n") };
+		return { success: errors.length === 0, reply: [...summaryLines, ...errors.map(e => `GI (${e.uid}): ${e.error}`)].join("\n") };
 	})
 };

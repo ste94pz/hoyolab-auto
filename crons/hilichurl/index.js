@@ -41,7 +41,11 @@ module.exports = {
 					app.Logger.warn("Cron:Hilichurl", {
 						message: t("Hilichurl automation failed"),
 						uid: account.uid,
-						error: result.message
+						error: result.message,
+						status: result.status,
+						completedTasks: result.data?.tasksFinished?.length ?? 0,
+						claimedTasks: result.data?.tasksClaimed?.length ?? 0,
+						exchanges: (result.data?.itemsExchanged?.length ?? 0) + (result.data?.freeItemsClaimed?.length ?? 0)
 					});
 					continue;
 				}

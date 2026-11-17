@@ -237,3 +237,158 @@ for (const redeem of [true, false]) {
 		}
 	});
 }
+
+const rejected = () => ({ body: { retcode: -510001, message: "Errore parametro", data: null } });
+
+for (const [taskFailure, shopFailure, status] of [[true, true, "failed"], [true, false, "partial"], [false, true, "partial"], [false, false, "no_activity"]]) {
+	test(`run propagates list failures (${taskFailure}, ${shopFailure})`, async t => {
+		const { workshop, replies, requests, logs } = await setup(t);
+		replies.push(info(0), taskFailure ? rejected() : ok({ task_list: []}), info(0), shopFailure ? rejected() : shop());
+		const result = await workshop.run(account);
+		assert.equal(result.status, status);
+		assert.equal(result.success, !taskFailure && !shopFailure);
+		assert.equal(result.data.errors.length, Number(taskFailure) + Number(shopFailure));
+		assert.equal(result.data.points, 0);
+		assert.ok(requests.every(r => r.method === "GET"));
+		if (taskFailure || shopFailure) {
+			assert.match(JSON.stringify(logs), /Hilichurl operation failed/);
+			assert.match(result.message, /task_list|exchange_list/);
+		}
+	});
+}
+
+for (const version of [undefined, null, "", 0, -1, "oops", 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+	test(`invalid version stops before list or mutation requests (${version})`, async t => {
+		const { workshop, replies, requests } = await setup(t);
+		replies.push(ok({ act_list: [{ act_info: { game_id: 2, version_id: version, point: 0 } }]}));
+		const result = await workshop.run(account);
+		assert.equal(result.success, false);
+		assert.equal(result.status, "failed");
+		assert.equal(result.data.errors.length, 1);
+		assert.equal(requests.length, 1);
+	});
+}
+
+for (const phase of ["future", "expired", "active"]) {
+	test(`advertised event window (${phase})`, async t => {
+		const { workshop, replies, requests } = await setup(t);
+		const now = Math.floor(Date.now() / 1000);
+		replies.push(ok({ act_list: [{ act_info: { game_id: 2,
+			version_id: "72",
+			point: 0,
+			start_time: String(now + (phase === "future" ? 60 : -60)),
+			end_time: String(now + (phase === "expired" ? -1 : 120)) } }]}));
+		const result = await workshop.getGameInfo(account);
+		assert.equal(result.success, phase === "active");
+		assert.equal(requests.length, 1);
+		if (result.success) {
+			assert.equal(result.data.versionId, "72");
+		}
+	});
+}
+
+for (const method of ["getTasks", "getShopItems"]) {
+	for (const data of [null, {}, { task_list: null, exchange_award_list: {} }]) {
+		test(`${method} rejects malformed successful response ${JSON.stringify(data)}`, async t => {
+			const { workshop, replies } = await setup(t);
+			replies.push(ok(data));
+			assert.equal((await workshop[method](account, 72)).success, false);
+		});
+	}
+}
+
+test("partial results preserve completed work and hide sensitive response/error details", async t => {
+	const { workshop, replies, logs } = await setup(t);
+	replies.push(info(), ok({ task_list: [task(1, 1, 1)]}), ok(), info(25));
+	workshop.getShopItems = async () => {
+		throw new Error(`cookie=${cookie}`);
+	};
+	const result = await workshop.run(account);
+	assert.equal(result.status, "partial");
+	assert.equal(result.success, false);
+	assert.equal(result.data.tasksClaimed.length, 1);
+	assert.equal(result.data.points, 25);
+	assert.equal(result.data.errors.length, 1);
+	assert.doesNotMatch(JSON.stringify([logs, result]), /synthetic-token|synthetic-cookie/);
+});
+
+test("API diagnostics whitelist HTTP status and numeric retcode", async t => {
+	const { workshop, replies, logs } = await setup(t);
+	replies.push({ body: { retcode: -510001, message: cookie, data: { cookie } } });
+	await workshop.getTasks(account, 72);
+	assert.match(JSON.stringify(logs), /-510001/);
+	assert.doesNotMatch(JSON.stringify(logs), /synthetic-token|synthetic-cookie/);
+});
+
+for (const stage of ["finishTask", "claimTaskReward", "exchangeItem", "getGameInfo"]) {
+	test(`run records failed ${stage} and retains successful reads`, async t => {
+		const { workshop } = await setup(t);
+		let infoCalls = 0;
+		workshop.getGameInfo = async () => ++infoCalls > 1 && stage === "getGameInfo"
+			? { success: false }
+			: { success: true, data: { versionId: 72, points: 20 } };
+		workshop.getTasks = async () => ({ success: true, data: [{ id: 1, name: "task", status: stage === "claimTaskReward" ? 1 : 2, taskType: 1, point: 5 }]});
+		workshop.finishTask = async () => ({ success: stage !== "finishTask" });
+		workshop.claimTaskReward = async () => ({ success: stage !== "claimTaskReward" });
+		workshop.getShopItems = async () => ({ success: true, data: [{ id: 2, name: "Frame", cost: 0, status: 1 }]});
+		workshop.exchangeItem = async () => ({ success: stage !== "exchangeItem", data: {} });
+		const result = await workshop.run(account);
+		assert.equal(result.success, false);
+		assert.equal(result.status, "partial");
+		assert.equal(result.data.errors.length, 1);
+	});
+}
+
+const loadConsumer = (relativePath) => {
+	const fs = require("node:fs");
+	const vm = require("node:vm");
+	const filename = require.resolve(relativePath);
+	const localRequire = require("node:module").createRequire(filename);
+	const context = {
+		module: { exports: {} },
+		app,
+		require: name => name === "../../config.js" ? { crons: {} } : localRequire(name)
+	};
+	vm.runInNewContext(fs.readFileSync(filename, "utf8"), context, { filename });
+	return context.module.exports;
+};
+
+for (const status of ["failed", "partial", "no_activity"]) {
+	test(`cron and manual command interpret ${status} without false success`, async t => {
+		const { workshop, replies } = await setup(t);
+		replies.push(info(0), status === "no_activity" ? ok({ task_list: []}) : rejected(), info(0), status === "failed" ? rejected() : shop());
+		const result = await workshop.run(account);
+		assert.equal(result.status, status);
+		const warnings = [];
+		const debug = [];
+		app.Logger.warn = (...args) => warnings.push(args);
+		app.Logger.debug = (...args) => debug.push(args);
+		app.HoyoLab.getActiveAccounts = () => [account];
+		app.HoyoLab.get = () => ({ hilichurl: async () => result });
+		await loadConsumer("../crons/hilichurl/index.js").code();
+		assert.equal(warnings.length, status === "no_activity" ? 0 : 1);
+		assert.equal(JSON.stringify(debug).includes("No new Hilichurl activity"), status === "no_activity");
+		const command = loadConsumer("../commands/hilichurl/index.js");
+		const text = await command.run({});
+		assert.equal(text.success, status === "no_activity");
+		assert.equal(text.reply.includes("operation failed"), status !== "no_activity");
+		let response;
+		await command.run({ interaction: { deferReply: async () => {},
+			editReply: async value => {
+				response = value;
+			} } });
+		assert.equal(response.embeds.length, status === "partial" ? 2 : 1);
+		if (status === "partial") {
+			assert.match(response.embeds[0].description, /partially completed/);
+		}
+	});
+}
+
+test("successful task activity returns success status", async t => {
+	const { workshop, replies } = await setup(t);
+	replies.push(info(), ok({ task_list: [task(1, 1, 1)]}), ok(), info(25), shop());
+	const result = await workshop.run(account);
+	assert.equal(result.success, true);
+	assert.equal(result.status, "success");
+	assert.deepEqual(result.data.errors, []);
+});

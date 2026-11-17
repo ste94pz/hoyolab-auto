@@ -120,20 +120,37 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to fetch Hilichurl Workshop info"),
-				args: { body: res.body }
+				args: { httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false };
 		}
 
 		// Genshin uses act_list[].act_info structure
-		const gameList = res.body.data.act_list?.map(item => item.act_info) ?? [];
+		const gameList = Array.isArray(res.body?.data?.act_list)
+			? res.body.data.act_list.map(item => item?.act_info).filter(Boolean)
+			: [];
 		const game = gameList.find(g => g.game_id === 2); // Genshin = game_id 2
 
 		if (!game) {
-			return { success: false, message: t("Hilichurl Workshop event not active for Genshin Impact") };
+			const message = t("Hilichurl Workshop event not active for Genshin Impact");
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
+			return { success: false, message };
+		}
+
+		if (!/^[1-9]\d*$/.test(String(game.version_id)) || !Number.isSafeInteger(Number(game.version_id))) {
+			const message = t("Invalid Hilichurl Workshop version");
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
+			return { success: false, message };
+		}
+		const now = Date.now() / 1000;
+		if ((Number(game.start_time) > 0 && now < Number(game.start_time))
+			|| (Number(game.end_time) > 0 && now > Number(game.end_time))) {
+			const message = t("Hilichurl Workshop event not active for Genshin Impact");
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
+			return { success: false, message };
 		}
 
 		return {
@@ -162,10 +179,10 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0 || !Array.isArray(res.body?.data?.task_list)) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to fetch Hilichurl tasks"),
-				args: { body: res.body }
+				args: { httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false };
 		}
@@ -202,10 +219,10 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to finish Hilichurl task"),
-				args: { taskId, body: res.body }
+				args: { taskId, httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false, message: res.body?.message };
 		}
@@ -227,10 +244,10 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to claim Hilichurl task reward"),
-				args: { taskId, body: res.body }
+				args: { taskId, httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false, message: res.body?.message };
 		}
@@ -250,10 +267,10 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0 || !Array.isArray(res.body?.data?.exchange_award_list)) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to fetch Hilichurl shop items"),
-				args: { body: res.body }
+				args: { httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false };
 		}
@@ -287,10 +304,10 @@ module.exports = class HilichurlWorkshop {
 			cookie: cookieData
 		});
 
-		if (res.statusCode !== 200 || res.body.retcode !== 0) {
-			app.Logger.log(`${this.#instance.fullName}:Hilichurl`, {
+		if (res.statusCode !== 200 || res.body?.retcode !== 0) {
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, {
 				message: t("Failed to exchange Hilichurl item"),
-				args: { awardId, body: res.body }
+				args: { awardId, httpStatus: res.statusCode, retcode: Number.isInteger(res.body?.retcode) ? res.body.retcode : undefined }
 			});
 			return { success: false, message: res.body?.message };
 		}
@@ -318,9 +335,25 @@ module.exports = class HilichurlWorkshop {
 			shopStatus: []
 		};
 
-		const gameInfo = await this.getGameInfo(accountData);
+		const attempt = async (stage, operation) => {
+			try {
+				const result = await operation();
+				if (result.success) {
+					return result;
+				}
+			}
+			catch {
+				// Transport errors may contain authenticated request options.
+			}
+			const message = t `Hilichurl operation failed: ${stage}`;
+			results.errors.push(message);
+			app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, message);
+			return { success: false, message };
+		};
+
+		const gameInfo = await attempt("index", () => this.getGameInfo(accountData));
 		if (!gameInfo.success) {
-			return { success: false, message: gameInfo.message || t("Failed to get Hilichurl Workshop info") };
+			return { success: false, status: "failed", message: gameInfo.message, data: results };
 		}
 
 		const { versionId } = gameInfo.data;
@@ -329,7 +362,7 @@ module.exports = class HilichurlWorkshop {
 		app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Starting Hilichurl Workshop automation - Current points: ${results.points}`);
 
 		// Process tasks
-		const tasks = await this.getTasks(accountData, versionId);
+		const tasks = await attempt("task_list", () => this.getTasks(accountData, versionId));
 		if (tasks.success) {
 			for (const task of tasks.data) {
 				// Try to auto-complete finishable tasks
@@ -338,7 +371,7 @@ module.exports = class HilichurlWorkshop {
 						await app.Utils.waitWithJitter((task.readSeconds + 1) * 1000);
 					}
 
-					const finishResult = await this.finishTask(accountData, task.id, versionId, task.taskType);
+					const finishResult = await attempt("finish_task", () => this.finishTask(accountData, task.id, versionId, task.taskType));
 					if (finishResult.success) {
 						results.tasksFinished.push(task.name);
 						task.status = TaskStatus.FINISHED;
@@ -349,7 +382,7 @@ module.exports = class HilichurlWorkshop {
 
 				// Claim completed tasks
 				if (task.status === TaskStatus.FINISHED) {
-					const claimResult = await this.claimTaskReward(accountData, task.id, versionId);
+					const claimResult = await attempt("receive_point", () => this.claimTaskReward(accountData, task.id, versionId));
 					if (claimResult.success) {
 						results.tasksClaimed.push({ name: task.name, points: task.point });
 						results.points += task.point;
@@ -361,13 +394,13 @@ module.exports = class HilichurlWorkshop {
 		}
 
 		// Refresh points after claiming tasks
-		const updatedGameInfo = await this.getGameInfo(accountData);
+		const updatedGameInfo = await attempt("refresh_index", () => this.getGameInfo(accountData));
 		if (updatedGameInfo.success) {
 			results.points = updatedGameInfo.data.points;
 		}
 
 		// Process shop exchanges
-		const shopItems = await this.getShopItems(accountData, versionId);
+		const shopItems = await attempt("exchange_list", () => this.getShopItems(accountData, versionId));
 		if (shopItems.success) {
 			results.shopStatus = shopItems.data.map(item => ({
 				name: item.name,
@@ -379,7 +412,7 @@ module.exports = class HilichurlWorkshop {
 
 			const freeItems = shopItems.data.filter(item => item.cost === 0 && item.status === ShopItemStatus.EXCHANGEABLE);
 			for (const item of freeItems) {
-				const exchangeResult = await this.exchangeItem(accountData, item.id, versionId);
+				const exchangeResult = await attempt("exchange", () => this.exchangeItem(accountData, item.id, versionId));
 				if (exchangeResult.success) {
 					results.freeItemsClaimed.push(item.name);
 					app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Claimed free item: ${item.name}`);
@@ -400,7 +433,7 @@ module.exports = class HilichurlWorkshop {
 					continue;
 				}
 
-				const exchangeResult = await this.exchangeItem(accountData, item.id, versionId);
+				const exchangeResult = await attempt("exchange", () => this.exchangeItem(accountData, item.id, versionId));
 				if (exchangeResult.success) {
 					const code = exchangeResult.data.code;
 					results.itemsExchanged.push({ name: item.name, cost: item.cost, code });
@@ -412,13 +445,10 @@ module.exports = class HilichurlWorkshop {
 					const shouldRedeem = accountData.redeemCode && (accountData.hilichurl?.redeem !== false);
 
 					if (code && shouldRedeem) {
-						const redeemResult = await this.#instance.redeemCode(accountData, code);
+						const redeemResult = await attempt("redeem_code", () => this.#instance.redeemCode(accountData, code));
 						if (redeemResult.success) {
 							results.codesRedeemed.push(code);
 							app.Logger.info(`${this.#instance.fullName}:Hilichurl`, t `(${accountData.uid}) Redeemed code: ${code}`);
-						}
-						else {
-							results.errors.push(t `Failed to redeem code ${code}: ${redeemResult.message}`);
 						}
 					}
 					else if (code) {
@@ -432,8 +462,19 @@ module.exports = class HilichurlWorkshop {
 			}
 		}
 
+		const hasActivity = [results.tasksFinished,
+			results.tasksClaimed,
+			results.freeItemsClaimed,
+			results.itemsExchanged,
+			results.codesRedeemed,
+			results.codesObtained].some(items => items.length > 0);
+		const status = results.errors.length > 0
+			? (tasks.success || shopItems.success || hasActivity ? "partial" : "failed")
+			: (hasActivity ? "success" : "no_activity");
 		return {
-			success: true,
+			success: results.errors.length === 0,
+			status,
+			message: results.errors.length > 0 ? results.errors.join("; ") : undefined,
 			data: {
 				...results,
 				assets: {

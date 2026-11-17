@@ -226,6 +226,12 @@ exchanges have also been observed. The timed headless flow is covered by offline
 tests; backend acceptance and the sufficiency of the waiting period remain
 unverified live.
 
+Hilichurl validates the event version and advertised activity dates before
+running. Failed reads or operations produce warnings and an unsuccessful result
+with errors, retaining any completed work. Results distinguish successful runs,
+successful runs without activity, partial runs, and failures; API failures are
+never reported as “no new activity”.
+
 ### Randomized scheduling
 
 Each job has one schedule under `crons`: choose `cron`, `interval`, or
